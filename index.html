@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b3974">
+  <meta name="description" content="Organize seus estudos para o concurso CRECI-ES — Analista de TI.">
+  <title>Meu Estudo | CRECI-ES — Analista de TI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#inicio" aria-label="Meu Estudo - início">
+      <span class="brand-icon" aria-hidden="true">▰</span><span>Meu <strong>Estudo</strong></span>
+    </a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">☰</button>
+    <nav class="main-nav" id="mainNav" aria-label="Navegação principal">
+      <a class="nav-link active" href="#inicio">Início</a>
+      <a class="nav-link" href="#plano">Plano de Estudo</a>
+      <a class="nav-link" href="#cadernos">Cadernos</a>
+      <a class="nav-link" href="#resumo">Resumo</a>
+    </nav>
+    <span class="exam-pill"><span aria-hidden="true">▦</span> CRECI-ES <i>|</i> Analista de TI</span>
+  </header>
+
+  <main>
+    <section class="hero section-shell" id="inicio">
+      <div class="hero-copy">
+        <p class="eyebrow">CONCURSO CRECI-ES</p>
+        <h1>Seu planejamento de estudos em <span>um só lugar.</span></h1>
+        <p class="hero-description">Organize sua rotina, resolva questões, acompanhe seus erros, acertos e resumos. Tudo para ajudar você a se preparar para o CRECI-ES — Analista de TI.</p>
+        <a class="button button-primary" href="#plano">Começar agora <span aria-hidden="true">→</span></a>
+        <div class="hero-note"><span class="note-dot"></span> Um passo de cada vez. Uma questão de cada vez.</div>
+      </div>
+      <div class="hero-visual" aria-label="Prévia ilustrativa do painel de estudos">
+        <div class="orb orb-one"></div><div class="orb orb-two"></div>
+        <div class="dashboard-window">
+          <div class="window-top"><span></span><span></span><span></span><small>MEU ESTUDO</small></div>
+          <div class="dashboard-body">
+            <aside class="mock-sidebar">
+              <b>▰ Meu Estudo</b><span class="mock-active">⌂ &nbsp; Início</span><span>▦ &nbsp; Plano de Estudo</span><span>☷ &nbsp; Caderno de Erros</span><span>✓ &nbsp; Caderno de Acertos</span><span>▤ &nbsp; Resumo</span>
+            </aside>
+            <div class="mock-content">
+              <span class="mock-label">SEU OBJETIVO</span>
+              <h3>CRECI-ES<br>Analista de TI</h3>
+              <div class="progress-label"><span>Seu progresso</span><strong id="mockProgressLabel">0%</strong></div>
+              <div class="progress-track"><span id="mockProgress"></span></div>
+              <div class="mock-stat-row"><div><b>3</b><small>Pomodoros/dia</small></div><div><b>30 min</b><small>Por pomodoro</small></div></div>
+              <p class="mock-quote">“Disciplina hoje,<br>resultado amanhã.”</p>
+            </div>
+          </div>
+        </div>
+        <div class="floating-card"><span class="floating-check">✓</span><div><strong>Continue avançando!</strong><small>Seu próximo passo está à sua espera.</small></div></div>
+        <div class="decorative-circle"></div>
+      </div>
+    </section>
+
+    <section class="features section-shell" id="cadernos">
+      <div class="section-heading">
+        <p class="eyebrow">SEU ESPAÇO DE ESTUDO</p>
+        <h2>Tudo o que você precisa para estudar melhor</h2>
+        <p>Ferramentas simples para manter o foco, aprender com as questões e acompanhar sua evolução.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <div class="feature-icon icon-calendar" aria-hidden="true">▦</div>
+          <h3>Plano de Estudo</h3>
+          <p>Acompanhe seu cronograma e saiba qual assunto estudar a cada dia.</p>
+          <a href="#plano" class="text-link">Ver plano <span>→</span></a>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon icon-error" aria-hidden="true">×</div>
+          <h3>Caderno de Erros</h3>
+          <p>Registre questões que errou, dúvidas e explicações para revisar depois.</p>
+          <a href="#cadernoErros" class="text-link">Acessar <span>→</span></a>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon icon-success" aria-hidden="true">✓</div>
+          <h3>Caderno de Acertos</h3>
+          <p>Acompanhe questões que acertou e reconheça os assuntos que domina.</p>
+          <a href="#cadernoAcertos" class="text-link">Acessar <span>→</span></a>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon icon-summary" aria-hidden="true">▤</div>
+          <h3>Resumo</h3>
+          <p>Guarde conceitos e explicações curtas que aprendeu resolvendo questões.</p>
+          <a href="#resumo" class="text-link">Acessar <span>→</span></a>
+        </article>
+      </div>
+    </section>
+
+    <section class="plan-section" id="plano">
+      <div class="section-shell plan-layout">
+        <div class="plan-copy">
+          <p class="eyebrow">PLANO DE ESTUDO</p>
+          <h2>Organização que gera resultado</h2>
+          <p>Siga o cronograma até a data prevista da prova, com os assuntos divididos por dia e foco nas questões do Gran Concursos.</p>
+          <div class="pomodoro-info">
+            <span class="pomodoro-symbol" aria-hidden="true">◷</span>
+            <div><strong>Cada dia tem 3 pomodoros de 30 minutos</strong><small>1. Resolver questões &nbsp; | &nbsp; 2. Corrigir e entender &nbsp; | &nbsp; 3. Registrar e refazer</small></div>
+          </div>
+          <a class="button button-dark" href="#cronograma">Ver plano completo <span>→</span></a>
+          <p class="small-note">Data prevista da prova: 17/01/2027. Confira os comunicados oficiais.</p>
+        </div>
+        <div class="week-card" id="cronograma">
+          <div class="week-card-heading"><span class="mini-calendar">▦</span><div><h3>Primeira semana</h3><p>13 a 19 de outubro de 2026</p></div></div>
+          <div class="week-list" id="weekList"></div>
+          <a class="text-link week-more" href="#cronogramaCompleto">Ver todas as semanas <span>→</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="tools-section section-shell" id="ferramentas">
+      <div class="section-heading">
+        <p class="eyebrow">ACOMPANHE SUA EVOLUÇÃO</p>
+        <h2>Seu estudo, do seu jeito</h2>
+        <p>Registre seu progresso com ferramentas simples. Os dados ficam salvos neste navegador.</p>
+      </div>
+      <div class="workspace-grid">
+        <article class="workspace-card" id="cadernoErros">
+          <div class="workspace-title"><div class="feature-icon icon-error">×</div><div><h3>Caderno de Erros</h3><p>Aprenda com cada questão.</p></div></div>
+          <form id="errorForm" class="entry-form">
+            <label for="errorSubject">Matéria</label><input id="errorSubject" required placeholder="Ex.: Redes de Computadores">
+            <label for="errorTopic">Assunto</label><input id="errorTopic" required placeholder="Ex.: TCP e UDP">
+            <label for="errorReason">Por que errei ou fiquei em dúvida?</label><textarea id="errorReason" required rows="3" placeholder="Explique com suas palavras..."></textarea>
+            <label for="errorRule">O que preciso lembrar?</label><textarea id="errorRule" rows="2" placeholder="Regra ou conceito correto"></textarea>
+            <button class="button button-primary" type="submit">Salvar erro</button>
+          </form>
+          <div class="saved-entries" id="errorEntries"><p class="empty-state">Seus registros aparecerão aqui.</p></div>
+        </article>
+        <article class="workspace-card" id="cadernoAcertos">
+          <div class="workspace-title"><div class="feature-icon icon-success">✓</div><div><h3>Caderno de Acertos</h3><p>Registre o que você já domina.</p></div></div>
+          <form id="successForm" class="entry-form">
+            <label for="successSubject">Matéria</label><input id="successSubject" required placeholder="Ex.: Banco de Dados">
+            <label for="successTopic">Assunto da questão</label><input id="successTopic" required placeholder="Ex.: Normalização">
+            <label for="successReason">Por que minha resposta estava correta?</label><textarea id="successReason" required rows="3" placeholder="Explique o raciocínio..."></textarea>
+            <button class="button button-primary" type="submit">Salvar acerto</button>
+          </form>
+          <div class="saved-entries" id="successEntries"><p class="empty-state">Seus registros aparecerão aqui.</p></div>
+        </article>
+        <article class="workspace-card summary-card" id="resumo">
+          <div class="workspace-title"><div class="feature-icon icon-summary">▤</div><div><h3>Resumo</h3><p>Conceitos aprendidos por meio das questões.</p></div></div>
+          <form id="summaryForm" class="entry-form">
+            <label for="summarySubject">Matéria</label><input id="summarySubject" required placeholder="Ex.: Segurança da Informação">
+            <label for="summaryTitle">Título do resumo</label><input id="summaryTitle" required placeholder="Ex.: Tríade CID">
+            <label for="summaryText">Resumo com suas palavras</label><textarea id="summaryText" required rows="4" placeholder="Escreva o conceito de forma objetiva..."></textarea>
+            <button class="button button-primary" type="submit">Salvar resumo</button>
+          </form>
+          <div class="saved-entries" id="summaryEntries"><p class="empty-state">Seus resumos aparecerão aqui.</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="full-plan-section" id="cronogramaCompleto">
+      <div class="section-shell">
+        <div class="section-heading">
+          <p class="eyebrow">CRONOGRAMA</p>
+          <h2>Uma semana de cada vez</h2>
+          <p>Marque os dias concluídos e acompanhe a programação de estudos.</p>
+        </div>
+        <div class="plan-progress-card">
+          <div class="progress-topline"><div><strong>Progresso do cronograma</strong><small id="completedText">0 de 98 dias concluídos</small></div><strong id="progressPercent">0%</strong></div>
+          <div class="progress-track large"><span id="planProgress"></span></div>
+        </div>
+        <div class="weeks-grid" id="allWeeks"></div>
+      </div>
+    </section>
+
+    <section class="closing-section">
+      <div class="section-shell closing-content">
+        <div><p class="eyebrow">SEU OBJETIVO, MAIS PERTO</p><h2>Estude com foco.<br>Conquiste sua vaga.</h2><p>Sua preparação para o CRECI-ES começa com um bom planejamento.</p><a class="button button-light" href="#plano">Continuar estudando <span>→</span></a></div>
+        <div class="closing-note" aria-hidden="true">Você<br>consegue!</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a class="brand footer-brand" href="#inicio"><span class="brand-icon">▰</span><span>Meu <strong>Estudo</strong></span></a>
+    <span>CRECI-ES <i>|</i> Analista de TI</span>
+    <span>Estudo <i>•</i> Planejamento <i>•</i> Resultado</span>
+  </footer>
+</body>
+</html>

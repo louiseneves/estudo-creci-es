@@ -385,19 +385,13 @@ document.getElementById("saveAutoSummary").addEventListener("click", async () =>
   }
 }
 
+
 function generateAutoSummary(overwrite = true) {
   const field = document.getElementById("autoSummaryText");
   if (!field) return;
   if (!overwrite && field.value.trim()) return;
 
-  const records = [
-    ...readStorage(STORAGE_KEYS.errors).map(item => ({
-      ...item, notebook:"Caderno de erros"
-    })),
-    ...readStorage(STORAGE_KEYS.successes).map(item => ({
-      ...item, notebook:"Caderno de acertos"
-    }))
-  ];
+  const records = readStorage(STORAGE_KEYS.errors);
 
   const grouped = new Map();
 
@@ -405,34 +399,37 @@ function generateAutoSummary(overwrite = true) {
     const block = record.block || "Bloco não informado";
     const subject = record.subject || "Matéria não informada";
     const topic = record.topic || record.title || "Assunto não informado";
+
     const key = `${block}|||${subject}|||${topic}`;
 
     if (!grouped.has(key)) {
-      grouped.set(key, {block, subject, topic, notes:[]});
+      grouped.set(key, {
+        block,
+        subject,
+        topic,
+        rules: []
+      });
     }
 
-    const note = [record.reason, record.rule, record.text]
-      .filter(Boolean)
-      .join(" ")
-      .trim();
+    const rule = String(record.rule || "").trim();
 
-    if (note) {
-      grouped.get(key).notes.push({
-        notebook:record.notebook,
-        note
-      });
+    if (rule && !grouped.get(key).rules.includes(rule)) {
+      grouped.get(key).rules.push(rule);
     }
   });
 
   if (!records.length) {
     field.value =
-      "Ainda não há registros nos cadernos. Depois de adicionar questões e explicações, clique em ‘Atualizar com os cadernos’.";
+      "Ainda não há questões no caderno de erros. Quando você registrar questões erradas e preencher a regra correta, o resumo será organizado por bloco, disciplina e assunto.";
   } else {
     const blocks = [
-      "Básicos", "Complementares", "Específicos", "Bloco não informado"
+      "Básicos",
+      "Complementares",
+      "Específicos",
+      "Bloco não informado"
     ];
 
-    const ordered = [...grouped.values()].sort((a,b) => {
+    const ordered = [...grouped.values()].sort((a, b) => {
       const ai = blocks.indexOf(a.block);
       const bi = blocks.indexOf(b.block);
 
@@ -442,31 +439,49 @@ function generateAutoSummary(overwrite = true) {
     });
 
     let currentBlock = "";
+    let currentSubject = "";
 
-    field.value = ordered.map(group => {
-      const heading = group.block !== currentBlock
-        ? `\n${group.block.toUpperCase()}\n`
-        : "";
+    const sections = [];
 
-      currentBlock = group.block;
+    ordered.forEach(group => {
+      if (group.block !== currentBlock) {
+        sections.push(`\n${group.block.toUpperCase()}\n`);
+        currentBlock = group.block;
+        currentSubject = "";
+      }
 
-      const notes = group.notes.length
-        ? group.notes.map(note =>
-            `- ${note.notebook}: ${note.note}`
-          ).join("\n")
-        : "- Sem explicação registrada ainda.";
+      if (group.subject !== currentSubject) {
+        sections.push(`\n${group.subject}\n`);
+        currentSubject = group.subject;
+      }
 
-      return `${heading}\n${group.subject} — ${group.topic}\n${notes}`;
-    }).join("\n").trim();
+      sections.push(`\n${group.topic}`);
+
+      if (group.rules.length) {
+        group.rules.forEach(rule => {
+          sections.push(`- Regra correta: ${rule}`);
+        });
+      } else {
+        sections.push(
+          "- Regra correta ainda não preenchida no caderno de erros."
+        );
+      }
+    });
+
+    field.value = sections.join("\n").trim();
   }
 
   if (overwrite) {
-    localStorage.setItem("meuEstudoCreci.autoSummary", field.value);
+    localStorage.setItem(
+      "meuEstudoCreci.autoSummary",
+      field.value
+    );
 
     const status = document.getElementById("autoSummaryStatus");
+
     if (status) {
       status.textContent =
-        "Resumo atualizado a partir dos registros. Revise e salve suas edições, se necessário.";
+        "Resumo organizado por disciplina e assunto. Clique em “Salvar minhas edições” para sincronizar com a nuvem.";
     }
   }
 }

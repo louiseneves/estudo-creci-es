@@ -1182,6 +1182,11 @@ if (signOutButton) {
 
 
 onAuthStateChanged(auth, async user => {
+    const progressLoginNotice = document.getElementById("progressLoginNotice");
+
+  if (progressLoginNotice) {
+    progressLoginNotice.hidden = Boolean(user);
+  }
   if (user) {
     showAuthMessage(`Conta conectada: ${user.email}`);
 

@@ -343,9 +343,46 @@ function ensureSummaryEditor() {
 
   summaryForm.parentNode.insertBefore(panel, summaryForm);
 
-  document.getElementById("refreshAutoSummary").addEventListener("click", () => {
-    generateAutoSummary(true);
-  });
+  
+document.getElementById("refreshAutoSummary").addEventListener("click", async () => {
+  generateAutoSummary(true);
+
+  const field = document.getElementById("autoSummaryText");
+  const status = document.getElementById("autoSummaryStatus");
+
+  if (!field) return;
+
+  const summary = field.value;
+
+  if (!auth.currentUser) {
+    if (status) {
+      status.textContent =
+        "Resumo atualizado no navegador. Entre na sua conta para sincronizar com a nuvem.";
+    }
+    return;
+  }
+
+  try {
+    await saveUserData(
+      auth.currentUser.uid,
+      "autoSummary",
+      summary
+    );
+
+    if (status) {
+      status.textContent =
+        "Resumo atualizado e sincronizado com a nuvem.";
+    }
+  } catch (error) {
+    console.error("Erro ao sincronizar o resumo:", error);
+
+    if (status) {
+      status.textContent =
+        "Resumo atualizado no navegador, mas não foi possível sincronizar com a nuvem.";
+    }
+  }
+});
+
 
   
 document.getElementById("saveAutoSummary").addEventListener("click", async () => {

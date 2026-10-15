@@ -163,13 +163,29 @@ function readStorage(key, fallback = []) {
   }
 }
 
+
 function writeStorage(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
     alert("Não foi possível salvar os dados neste navegador.");
+    return;
   }
+
+  const dataKeys = Object.entries(STORAGE_KEYS);
+  const matchedKey = dataKeys.find(([, storageKey]) => storageKey === key);
+
+  if (!auth.currentUser || !matchedKey) return;
+
+  const dataKey = matchedKey[0];
+
+  saveUserData(auth.currentUser.uid, dataKey, value)
+    .catch(error => {
+      console.error("Erro ao salvar dados no Firestore:", error);
+      alert("Os dados foram salvos no navegador, mas não foi possível sincronizar com a nuvem.");
+    });
 }
+
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({

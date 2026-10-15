@@ -1070,14 +1070,38 @@ if (signOutButton) {
   });
 }
 
-onAuthStateChanged(auth, user => {
+
+onAuthStateChanged(auth, async user => {
   if (user) {
     showAuthMessage(`Conta conectada: ${user.email}`);
 
     if (signOutButton) signOutButton.hidden = false;
     if (createAccountButton) createAccountButton.hidden = true;
+
     if (authForm) {
       authForm.querySelector('[type="submit"]').textContent = "Entrar";
+    }
+
+    try {
+      for (const [dataKey, storageKey] of Object.entries(STORAGE_KEYS)) {
+        const value = await loadUserData(user.uid, dataKey);
+
+        if (value !== null) {
+          localStorage.setItem(storageKey, JSON.stringify(value));
+        }
+      }
+
+      renderSavedEntries(STORAGE_KEYS.errors, "errorEntries", "errors");
+      renderSavedEntries(STORAGE_KEYS.successes, "successEntries", "successes");
+      renderSavedEntries(STORAGE_KEYS.summaries, "summaryEntries", "summaries");
+      renderAllWeeks();
+
+      showAuthMessage(`Conta conectada: ${user.email}`);
+    } catch (error) {
+      console.error("Erro ao carregar dados do Firestore:", error);
+      showAuthMessage(
+        "Conta conectada, mas não foi possível carregar os dados da nuvem."
+      );
     }
   } else {
     showAuthMessage("Você ainda não entrou.");
@@ -1086,6 +1110,7 @@ onAuthStateChanged(auth, user => {
     if (createAccountButton) createAccountButton.hidden = false;
   }
 });
+
 
 async function loadUserData(userId, dataKey) {
   const userDoc = doc(db, "users", userId, "studyData", dataKey);

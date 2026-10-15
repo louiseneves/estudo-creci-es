@@ -1091,6 +1091,7 @@ if (signOutButton) {
 }
 
 
+
 onAuthStateChanged(auth, async user => {
   if (user) {
     showAuthMessage(`Conta conectada: ${user.email}`);
@@ -1104,21 +1105,34 @@ onAuthStateChanged(auth, async user => {
 
     try {
       for (const [dataKey, storageKey] of Object.entries(STORAGE_KEYS)) {
-  const value = await loadUserData(user.uid, dataKey);
+        const value = await loadUserData(user.uid, dataKey);
 
-  if (value !== null) {
-    localStorage.setItem(storageKey, JSON.stringify(value));
-  } else {
-    localStorage.removeItem(storageKey);
-  }
-}
+        if (value !== null) {
+          localStorage.setItem(storageKey, JSON.stringify(value));
+        } else {
+          localStorage.removeItem(storageKey);
+        }
+      }
 
-localStorage.removeItem("meuEstudoCreci.autoSummary");
+      const savedAutoSummary = await loadUserData(
+        user.uid,
+        "autoSummary"
+      );
+
+      if (savedAutoSummary !== null) {
+        localStorage.setItem(
+          "meuEstudoCreci.autoSummary",
+          savedAutoSummary
+        );
+      } else {
+        localStorage.removeItem("meuEstudoCreci.autoSummary");
+      }
 
       renderSavedEntries(STORAGE_KEYS.errors, "errorEntries", "errors");
       renderSavedEntries(STORAGE_KEYS.successes, "successEntries", "successes");
       renderSavedEntries(STORAGE_KEYS.summaries, "summaryEntries", "summaries");
       renderAllWeeks();
+      ensureSummaryEditor();
 
       showAuthMessage(`Conta conectada: ${user.email}`);
     } catch (error) {
@@ -1128,30 +1142,19 @@ localStorage.removeItem("meuEstudoCreci.autoSummary");
       );
     }
   } else {
-  showAuthMessage("Você ainda não entrou.");
+    showAuthMessage("Você ainda não entrou.");
 
-  if (signOutButton) signOutButton.hidden = true;
-  if (createAccountButton) createAccountButton.hidden = false;
+    if (signOutButton) signOutButton.hidden = true;
+    if (createAccountButton) createAccountButton.hidden = false;
 
-  for (const storageKey of Object.values(STORAGE_KEYS)) {
-    localStorage.removeItem(storageKey);
+    for (const storageKey of Object.values(STORAGE_KEYS)) {
+      localStorage.removeItem(storageKey);
+    }
+
+    localStorage.removeItem("meuEstudoCreci.autoSummary");
   }
-
-  const savedAutoSummary = await loadUserData(
-  user.uid,
-  "autoSummary"
-);
-
-if (savedAutoSummary !== null) {
-  localStorage.setItem(
-    "meuEstudoCreci.autoSummary",
-    savedAutoSummary
-  );
-} else {
-  localStorage.removeItem("meuEstudoCreci.autoSummary");
-}
-}
 });
+
 
 
 async function loadUserData(userId, dataKey) {

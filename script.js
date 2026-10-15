@@ -1,3 +1,13 @@
+
+import { auth } from "./firebase.js";
+
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
 const STORAGE_KEYS = {
   errors: "meuEstudoCreci.errors",
   successes: "meuEstudoCreci.successes",
@@ -961,3 +971,101 @@ setupEntryForm(
 renderWeekPreview();
 renderAllWeeks();
 ensureSummaryEditor();
+
+
+const authForm = document.getElementById("authForm");
+const createAccountButton = document.getElementById("createAccountButton");
+const signOutButton = document.getElementById("signOutButton");
+const authStatus = document.getElementById("authStatus");
+const authEmail = document.getElementById("authEmail");
+const authPassword = document.getElementById("authPassword");
+
+function showAuthMessage(message) {
+  if (authStatus) {
+    authStatus.textContent = message;
+  }
+}
+
+function getAuthErrorMessage(error) {
+  const messages = {
+    "auth/invalid-email": "Digite um e-mail válido.",
+    "auth/missing-password": "Digite sua senha.",
+    "auth/weak-password": "A senha deve ter pelo menos 6 caracteres.",
+    "auth/email-already-in-use": "Este e-mail já possui uma conta.",
+    "auth/invalid-credential": "E-mail ou senha incorretos.",
+    "auth/too-many-requests": "Muitas tentativas. Aguarde e tente novamente.",
+    "auth/network-request-failed": "Falha de conexão. Verifique sua internet."
+  };
+
+  return messages[error.code] || "Não foi possível concluir a operação. Tente novamente.";
+}
+
+if (authForm) {
+  authForm.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    try {
+      showAuthMessage("Entrando na sua conta...");
+
+      await signInWithEmailAndPassword(
+        auth,
+        authEmail.value.trim(),
+        authPassword.value
+      );
+
+      authPassword.value = "";
+      showAuthMessage("Login realizado com sucesso!");
+    } catch (error) {
+      showAuthMessage(getAuthErrorMessage(error));
+    }
+  });
+}
+
+if (createAccountButton) {
+  createAccountButton.addEventListener("click", async () => {
+    if (!authForm.reportValidity()) return;
+
+    try {
+      showAuthMessage("Criando sua conta...");
+
+      await createUserWithEmailAndPassword(
+        auth,
+        authEmail.value.trim(),
+        authPassword.value
+      );
+
+      authPassword.value = "";
+      showAuthMessage("Conta criada com sucesso!");
+    } catch (error) {
+      showAuthMessage(getAuthErrorMessage(error));
+    }
+  });
+}
+
+if (signOutButton) {
+  signOutButton.addEventListener("click", async () => {
+    try {
+      await signOut(auth);
+      showAuthMessage("Você saiu da sua conta.");
+    } catch (error) {
+      showAuthMessage(getAuthErrorMessage(error));
+    }
+  });
+}
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    showAuthMessage(`Conta conectada: ${user.email}`);
+
+    if (signOutButton) signOutButton.hidden = false;
+    if (createAccountButton) createAccountButton.hidden = true;
+    if (authForm) {
+      authForm.querySelector('[type="submit"]').textContent = "Entrar";
+    }
+  } else {
+    showAuthMessage("Você ainda não entrou.");
+
+    if (signOutButton) signOutButton.hidden = true;
+    if (createAccountButton) createAccountButton.hidden = false;
+  }
+});

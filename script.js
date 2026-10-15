@@ -1070,3 +1070,19 @@ onAuthStateChanged(auth, user => {
     if (createAccountButton) createAccountButton.hidden = false;
   }
 });
+
+async function loadUserData(userId, dataKey) {
+  const userDoc = doc(db, "users", userId, "studyData", dataKey);
+  const snapshot = await getDoc(userDoc);
+
+  return snapshot.exists() ? snapshot.data().value : null;
+}
+
+async function saveUserData(userId, dataKey, value) {
+  const userDoc = doc(db, "users", userId, "studyData", dataKey);
+
+  await setDoc(userDoc, {
+    value,
+    updatedAt: new Date().toISOString()
+  });
+}

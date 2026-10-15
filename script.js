@@ -1104,11 +1104,17 @@ onAuthStateChanged(auth, async user => {
       );
     }
   } else {
-    showAuthMessage("Você ainda não entrou.");
+  showAuthMessage("Você ainda não entrou.");
 
-    if (signOutButton) signOutButton.hidden = true;
-    if (createAccountButton) createAccountButton.hidden = false;
+  if (signOutButton) signOutButton.hidden = true;
+  if (createAccountButton) createAccountButton.hidden = false;
+
+  for (const storageKey of Object.values(STORAGE_KEYS)) {
+    localStorage.removeItem(storageKey);
   }
+
+  localStorage.removeItem("meuEstudoCreci.autoSummary");
+}
 });
 
 

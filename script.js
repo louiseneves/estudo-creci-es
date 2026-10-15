@@ -1084,12 +1084,16 @@ onAuthStateChanged(auth, async user => {
 
     try {
       for (const [dataKey, storageKey] of Object.entries(STORAGE_KEYS)) {
-        const value = await loadUserData(user.uid, dataKey);
+  const value = await loadUserData(user.uid, dataKey);
 
-        if (value !== null) {
-          localStorage.setItem(storageKey, JSON.stringify(value));
-        }
-      }
+  if (value !== null) {
+    localStorage.setItem(storageKey, JSON.stringify(value));
+  } else {
+    localStorage.removeItem(storageKey);
+  }
+}
+
+localStorage.removeItem("meuEstudoCreci.autoSummary");
 
       renderSavedEntries(STORAGE_KEYS.errors, "errorEntries", "errors");
       renderSavedEntries(STORAGE_KEYS.successes, "successEntries", "successes");

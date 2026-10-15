@@ -1137,7 +1137,19 @@ localStorage.removeItem("meuEstudoCreci.autoSummary");
     localStorage.removeItem(storageKey);
   }
 
+  const savedAutoSummary = await loadUserData(
+  user.uid,
+  "autoSummary"
+);
+
+if (savedAutoSummary !== null) {
+  localStorage.setItem(
+    "meuEstudoCreci.autoSummary",
+    savedAutoSummary
+  );
+} else {
   localStorage.removeItem("meuEstudoCreci.autoSummary");
+}
 }
 });
 

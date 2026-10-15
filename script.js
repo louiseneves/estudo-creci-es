@@ -347,14 +347,34 @@ function ensureSummaryEditor() {
     generateAutoSummary(true);
   });
 
-  document.getElementById("saveAutoSummary").addEventListener("click", () => {
-    localStorage.setItem(
-      "meuEstudoCreci.autoSummary",
-      document.getElementById("autoSummaryText").value
-    );
+  
+document.getElementById("saveAutoSummary").addEventListener("click", async () => {
+  const summary = document.getElementById("autoSummaryText").value;
+
+  localStorage.setItem("meuEstudoCreci.autoSummary", summary);
+
+  if (auth.currentUser) {
+    try {
+      await saveUserData(
+        auth.currentUser.uid,
+        "autoSummary",
+        summary
+      );
+
+      document.getElementById("autoSummaryStatus").textContent =
+        "Resumo salvo neste navegador e na nuvem.";
+    } catch (error) {
+      console.error("Erro ao salvar o resumo no Firestore:", error);
+
+      document.getElementById("autoSummaryStatus").textContent =
+        "Resumo salvo neste navegador, mas não foi possível sincronizar com a nuvem.";
+    }
+  } else {
     document.getElementById("autoSummaryStatus").textContent =
-      "Resumo editado salvo neste navegador.";
-  });
+      "Resumo salvo neste navegador. Entre na sua conta para sincronizar com a nuvem.";
+  }
+});
+
 
   const saved = localStorage.getItem("meuEstudoCreci.autoSummary");
 

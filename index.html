@@ -28,6 +28,73 @@
   </header>
 
   <main>
+    
+    <section class="tools-section section-shell" id="conta">
+      <div class="section-heading">
+        <p class="eyebrow">SUA CONTA</p>
+        <h2>Acesse seu espaço de estudos</h2>
+        <p>Entre com sua conta para preparar o salvamento dos seus dados.</p>
+      </div>
+
+      <div class="workspace-grid">
+        <article class="workspace-card">
+          <div class="workspace-title">
+            <div class="feature-icon icon-success">✓</div>
+            <div>
+              <h3>Entrar ou criar conta</h3>
+              <p>Use seu e-mail e sua senha.</p>
+            </div>
+          </div>
+
+          <form id="authForm" class="entry-form">
+            <label for="authEmail">E-mail</label>
+            <input
+              id="authEmail"
+              type="email"
+              autocomplete="email"
+              required
+              placeholder="seuemail@exemplo.com"
+            >
+
+            <label for="authPassword">Senha</label>
+            <input
+              id="authPassword"
+              type="password"
+              autocomplete="current-password"
+              minlength="6"
+              required
+              placeholder="Digite sua senha"
+            >
+
+            <button class="button button-primary" type="submit">
+              Entrar
+            </button>
+
+            <button
+              class="button button-dark"
+              id="createAccountButton"
+              type="button"
+            >
+              Criar conta
+            </button>
+          </form>
+
+          <div id="authStatus" role="status" aria-live="polite">
+            Você ainda não entrou.
+          </div>
+
+          <button
+            class="button button-dark"
+            id="signOutButton"
+            type="button"
+            hidden
+          >
+            Sair da conta
+          </button>
+        </article>
+      </div>
+    </section>
+
     <section class="hero section-shell" id="inicio">
       <div class="hero-copy">
         <p class="eyebrow">CONCURSO CRECI-ES</p>

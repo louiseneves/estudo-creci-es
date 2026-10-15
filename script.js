@@ -667,10 +667,14 @@ function renderSavedEntries(key, containerId, kind) {
   });
 }
 
+
 function editEntry(key, containerId, kind, id) {
   const entries = readStorage(key);
   const entry = entries.find(item => item.id === id);
   if (!entry) return;
+
+  const container = document.getElementById(containerId);
+  if (!container) return;
 
   const fields = [
     ["subject", "Matéria"],
@@ -685,15 +689,48 @@ function editEntry(key, containerId, kind, id) {
     ["rule", "Regra correta / o que aprendi"]
   ];
 
-  for (const [field, label] of fields) {
-    const value = prompt(label, entry[field] || "");
-    if (value === null) return;
-    entry[field] = value.trim();
-  }
+  const oldForm = container.querySelector("#editEntryForm");
+  if (oldForm) oldForm.remove();
 
-  writeStorage(key, entries);
-  renderSavedEntries(key, containerId, kind);
-  generateAutoSummary(true);
+  const form = document.createElement("form");
+  form.id = "editEntryForm";
+  form.className = "saved-entry";
+
+  form.innerHTML = `
+    <h3>Editar registro</h3>
+    ${fields.map(([field, label]) => `
+      <label>
+        ${label}
+        <textarea name="${field}" rows="2"></textarea>
+      </label>
+    `).join("")}
+    <button type="submit">Salvar alterações</button>
+    <button type="button" id="cancelEditEntry">Cancelar</button>
+  `;
+
+  fields.forEach(([field]) => {
+    form.elements[field].value = entry[field] || "";
+  });
+
+  container.prepend(form);
+
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+
+    fields.forEach(([field]) => {
+      entry[field] = form.elements[field].value.trim();
+    });
+
+    writeStorage(key, entries);
+    renderSavedEntries(key, containerId, kind);
+    generateAutoSummary(true);
+  });
+
+  document.getElementById("cancelEditEntry").addEventListener("click", () => {
+    form.remove();
+  });
+
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function setupEntryForm(formId, key, containerId, kind, getEntry) {

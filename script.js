@@ -1186,6 +1186,10 @@ onAuthStateChanged(auth, async user => {
 
   if (progressLoginNotice) {
     progressLoginNotice.hidden = Boolean(user);
+      const accountSection = document.getElementById("conta");
+  if (accountSection) {
+    accountSection.classList.toggle("is-authenticated", Boolean(user));
+  }
   }
   if (user) {
     showAuthMessage(`Conta conectada: ${user.email}`);

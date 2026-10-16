@@ -9,12 +9,15 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
+
 const STORAGE_KEYS = {
   errors: "meuEstudoCreci.errors",
   successes: "meuEstudoCreci.successes",
   summaries: "meuEstudoCreci.summaries",
-  completedDays: "meuEstudoCreci.completedDays"
+  completedDays: "meuEstudoCreci.completedDays",
+  completedPomodoros: "meuEstudoCreci.completedPomodoros"
 };
+
 
 const studyDays = [
   ["Terça", "13/10", "Fundamentos de Computação", "Arquitetura, hardware, software e periféricos."],

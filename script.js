@@ -731,14 +731,57 @@ function renderSavedEntries(key, containerId, kind) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const entries = readStorage(key);
+  
+const allEntries = readStorage(key);
 
-  if (!entries.length) {
-    container.innerHTML =
-      '<p class="empty-state">Seus registros aparecerão aqui.</p>';
-    return;
+const prefix = kind === "errors" ? "error" : "success";
+const searchInput = document.getElementById(`${prefix}Search`);
+const filterType = document.getElementById(`${prefix}FilterType`);
+const filterDate = document.getElementById(`${prefix}FilterDate`);
+const clearButton = document.getElementById(
+  `clear${kind === "errors" ? "Error" : "Success"}Filters`
+);
+
+const searchText = (searchInput?.value || "").trim().toLocaleLowerCase("pt-BR");
+const selectedFilter = filterType?.value || "all";
+const selectedDate = filterDate?.value || "";
+
+const entries = allEntries.filter(entry => {
+  const subject = String(entry.subject || "").toLocaleLowerCase("pt-BR");
+  const topic = String(entry.topic || entry.title || "").toLocaleLowerCase("pt-BR");
+  const entryDate = entry.dateISO || "";
+
+  let matchesSearch = true;
+
+  if (searchText) {
+    if (selectedFilter === "subject") {
+      matchesSearch = subject.includes(searchText);
+    } else if (selectedFilter === "topic") {
+      matchesSearch = topic.includes(searchText);
+    } else if (selectedFilter === "date") {
+      matchesSearch =
+        entryDate.includes(searchText) ||
+        String(entry.date || "").toLocaleLowerCase("pt-BR").includes(searchText);
+    } else {
+      matchesSearch =
+        subject.includes(searchText) ||
+        topic.includes(searchText) ||
+        entryDate.includes(searchText) ||
+        String(entry.date || "").toLocaleLowerCase("pt-BR").includes(searchText);
+    }
   }
 
+  const matchesDate = !selectedDate || entryDate === selectedDate;
+
+  return matchesSearch && matchesDate;
+});
+
+
+if (!entries.length) {
+  container.innerHTML = allEntries.length
+    ? '<p class="empty-state">Nenhum registro encontrado com esses filtros.</p>'
+    : '<p class="empty-state">Seus registros aparecerão aqui.</p>';
+} else {
   container.innerHTML = entries.slice().reverse().map(entry => {
     const dates = reviewDates(entry);
 
@@ -775,18 +818,14 @@ function renderSavedEntries(key, containerId, kind) {
 
         ${entry.reason ? `
           <p>
-            <strong>${kind === "errors"
-              ? "Por que errei / fiquei em dúvida:"
-              : "Por que acertei:"}</strong>
+            <strong>${kind === "errors" ? "Por que errei / fiquei em dúvida:" : "Por que acertei:"}</strong>
             ${escapeHtml(entry.reason)}
           </p>
         ` : ""}
 
         ${entry.rule ? `
           <p>
-            <strong>${kind === "errors"
-              ? "Regra correta:"
-              : "Regra / raciocínio compreendido:"}</strong>
+            <strong>${kind === "errors" ? "Regra correta:" : "Regra / raciocínio compreendido:"}</strong>
             ${escapeHtml(entry.rule)}
           </p>
         ` : ""}
@@ -806,6 +845,40 @@ function renderSavedEntries(key, containerId, kind) {
       </article>
     `;
   }).join("");
+}
+
+const filterControls = [
+  searchInput,
+  filterType,
+  filterDate
+].filter(Boolean);
+
+filterControls.forEach(control => {
+  if (!control.dataset.filterListenerAdded) {
+    control.dataset.filterListenerAdded = "true";
+
+    control.addEventListener("input", () => {
+      renderSavedEntries(key, containerId, kind);
+    });
+
+    control.addEventListener("change", () => {
+      renderSavedEntries(key, containerId, kind);
+    });
+  }
+});
+
+if (clearButton && !clearButton.dataset.filterListenerAdded) {
+  clearButton.dataset.filterListenerAdded = "true";
+
+  clearButton.addEventListener("click", () => {
+    if (searchInput) searchInput.value = "";
+    if (filterType) filterType.value = "all";
+    if (filterDate) filterDate.value = "";
+
+    renderSavedEntries(key, containerId, kind);
+  });
+}
+
 
   container.querySelectorAll("[data-delete]").forEach(button => {
     button.addEventListener("click", () => {

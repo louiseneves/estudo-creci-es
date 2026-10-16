@@ -197,7 +197,29 @@
             <label for="errorRule">O que preciso lembrar?</label><textarea id="errorRule" rows="2" placeholder="Regra ou conceito correto"></textarea>
             <button class="button button-primary" type="submit">Salvar erro</button>
           </form>
-          <div class="saved-entries" id="errorEntries"><p class="empty-state">Seus registros aparecerão aqui.</p></div>
+          
+<div class="entry-filters" id="errorFilters">
+  <label for="errorSearch">Pesquisar registros</label>
+  <input id="errorSearch" type="search" placeholder="Buscar por matéria ou assunto...">
+
+  <label for="errorFilterType">Filtrar por</label>
+  <select id="errorFilterType">
+    <option value="all">Todos os registros</option>
+    <option value="subject">Matéria</option>
+    <option value="topic">Assunto</option>
+    <option value="date">Data</option>
+  </select>
+
+  <label for="errorFilterDate">Data específica</label>
+  <input id="errorFilterDate" type="date">
+
+  <button class="button button-dark" id="clearErrorFilters" type="button">Limpar filtros</button>
+</div>
+
+<div class="saved-entries" id="errorEntries">
+  <p class="empty-state">Seus registros aparecerão aqui.</p>
+</div>
+
         </article>
         <article class="workspace-card" id="cadernoAcertos">
           <div class="workspace-title"><div class="feature-icon icon-success">✓</div><div><h3>Caderno de Acertos</h3><p>Registre o que você já domina.</p></div></div>
@@ -207,7 +229,29 @@
             <label for="successReason">Por que minha resposta estava correta?</label><textarea id="successReason" required rows="3" placeholder="Explique o raciocínio..."></textarea>
             <button class="button button-primary" type="submit">Salvar acerto</button>
           </form>
-          <div class="saved-entries" id="successEntries"><p class="empty-state">Seus registros aparecerão aqui.</p></div>
+          
+<div class="entry-filters" id="successFilters">
+  <label for="successSearch">Pesquisar registros</label>
+  <input id="successSearch" type="search" placeholder="Buscar por matéria ou assunto...">
+
+  <label for="successFilterType">Filtrar por</label>
+  <select id="successFilterType">
+    <option value="all">Todos os registros</option>
+    <option value="subject">Matéria</option>
+    <option value="topic">Assunto</option>
+    <option value="date">Data</option>
+  </select>
+
+  <label for="successFilterDate">Data específica</label>
+  <input id="successFilterDate" type="date">
+
+  <button class="button button-dark" id="clearSuccessFilters" type="button">Limpar filtros</button>
+</div>
+
+<div class="saved-entries" id="successEntries">
+  <p class="empty-state">Seus registros aparecerão aqui.</p>
+</div>
+
         </article>
         <article class="workspace-card summary-card" id="resumo">
           <div class="workspace-title"><div class="feature-icon icon-summary">▤</div><div><h3>Resumo</h3><p>Conceitos aprendidos por meio das questões.</p></div></div>

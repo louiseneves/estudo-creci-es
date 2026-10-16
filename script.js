@@ -526,23 +526,196 @@ function generateAutoSummary(overwrite = true) {
   }
 }
 
+
 function renderWeekPreview() {
   const container = document.getElementById("weekList");
   if (!container) return;
 
-  container.innerHTML = studyDays.map(day => `
+  const today = new Date();
+  const todayKey = [
+    String(today.getDate()).padStart(2, "0"),
+    String(today.getMonth() + 1).padStart(2, "0")
+  ].join("/");
+
+  let todayPlan = null;
+  let todayWeekIndex = -1;
+  let todayDayIndex = -1;
+
+  weeks.some((week, weekIndex) => {
+    const dayIndex = week.days.findIndex(day => day[0] === todayKey);
+
+    if (dayIndex !== -1) {
+      todayPlan = week.days[dayIndex];
+      todayWeekIndex = weekIndex;
+      todayDayIndex = dayIndex;
+      return true;
+    }
+
+    return false;
+  });
+
+  if (!todayPlan) {
+    container.innerHTML = `
+      <div class="week-row">
+        <div class="week-topic">
+          <strong>Nenhum plano encontrado para hoje</strong>
+          <small>Confira as datas do cronograma.</small>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const [date, mainSubject, mainTopic] = todayPlan;
+  const dayKey = `${todayWeekIndex}-${todayDayIndex}`;
+  const completedPomodoros = new Set(
+    readStorage(STORAGE_KEYS.completedPomodoros, [])
+  );
+
+  const isExamDay =
+    date === "17/01" &&
+    mainSubject.toLowerCase().includes("prova");
+
+  if (isExamDay) {
+    container.innerHTML = `
+      <div class="week-row">
+        <div class="week-day">
+          ${escapeHtml(date)}
+          <small>Dia da prova</small>
+        </div>
+        <div class="week-topic">
+          <strong>Boa prova!</strong>
+          <small>Priorize descanso, alimentação, documentos e deslocamento.</small>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const basic = choosePomodoro(
+    pomodoroBasics,
+    todayWeekIndex * 7 + todayDayIndex,
+    [mainSubject]
+  );
+
+  const complementary = choosePomodoro(
+    pomodoroComplementary,
+    todayWeekIndex * 7 + todayDayIndex,
+    [mainSubject, basic.subject]
+  );
+
+  const pomodoros = [
+    {
+      id: `${dayKey}-p1`,
+      title: mainSubject,
+      topic: mainTopic
+    },
+    {
+      id: `${dayKey}-p2`,
+      title: basic.subject,
+      topic: basic.topic
+    },
+    {
+      id: `${dayKey}-p3`,
+      title: complementary.subject,
+      topic: complementary.topic
+    }
+  ];
+
+  container.innerHTML = `
     <div class="week-row">
       <div class="week-day">
-        ${escapeHtml(day[0])}<small>${escapeHtml(day[1])}</small>
+        ${escapeHtml(date)}
+        <small>Plano de hoje</small>
       </div>
       <div class="week-topic">
-        <strong>${escapeHtml(day[2])}</strong>
-        <small>${escapeHtml(day[3])}</small>
+        <strong>${escapeHtml(mainSubject)}</strong>
+        <small>${escapeHtml(mainTopic)}</small>
       </div>
-      <span aria-hidden="true">›</span>
     </div>
-  `).join("");
+
+    <div class="pomodoro-list">
+      ${pomodoros.map((pomodoro, index) => `
+        <label class="pomodoro-item pomodoro-check">
+          <input
+            type="checkbox"
+            data-preview-pomodoro="${pomodoro.id}"
+            ${completedPomodoros.has(pomodoro.id) ? "checked" : ""}
+          >
+          <span class="pomodoro-content">
+            <strong>P${index + 1} · 30 minutos — ${escapeHtml(pomodoro.title)}</strong>
+            <span>${escapeHtml(pomodoro.topic)}</span>
+          </span>
+        </label>
+      `).join("")}
+    </div>
+  `;
+
+  container.querySelectorAll("[data-preview-pomodoro]").forEach(input => {
+    input.addEventListener("change", () => {
+      const updated = new Set(
+        readStorage(STORAGE_KEYS.completedPomodoros, [])
+      );
+
+      if (input.checked) {
+        updated.add(input.dataset.previewPomodoro);
+      } else {
+        updated.delete(input.dataset.previewPomodoro);
+      }
+
+      writeStorage(
+        STORAGE_KEYS.completedPomodoros,
+        [...updated]
+      );
+
+      const dayPomodoros = [
+        ...document.querySelectorAll(
+          `#allWeeks [data-pomodoro][data-day-key="${dayKey}"]`
+        )
+      ];
+
+      const previewPomodoros = [
+        ...container.querySelectorAll("[data-preview-pomodoro]")
+      ];
+
+      const allChecked =
+        previewPomodoros.length > 0 &&
+        previewPomodoros.every(item => item.checked);
+
+      const dayCheckbox = document.querySelector(
+        `#allWeeks [data-day="${dayKey}"]`
+      );
+
+      if (dayCheckbox) {
+        dayCheckbox.checked = allChecked;
+
+        const completedDays = new Set(
+          readStorage(STORAGE_KEYS.completedDays, [])
+        );
+
+        if (allChecked) {
+          completedDays.add(dayKey);
+        } else {
+          completedDays.delete(dayKey);
+        }
+
+        writeStorage(
+          STORAGE_KEYS.completedDays,
+          [...completedDays]
+        );
+      }
+
+      const allDayPomodorosChecked =
+        dayPomodoros.length > 0 &&
+        dayPomodoros.every(item => item.checked);
+
+      if (dayCheckbox && dayCheckbox.checked !== allDayPomodorosChecked) {
+        dayCheckbox.checked = allDayPomodorosChecked;
+      }
+    });
+  });
 }
+
 
 function reviewDates(entry) {
   const base = entry.dateISO || todayISO();

@@ -1316,3 +1316,26 @@ h2 {
 #conta #signOutButton[hidden] {
   display: none;
 }
+
+
+/* Área de conta: exibição conforme autenticação */
+#conta.is-authenticated .workspace-title,
+#conta.is-authenticated #authForm {
+  display: none;
+}
+
+#conta.is-authenticated #authStatus {
+  text-align: center;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+#conta.is-authenticated #signOutButton {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+}
+
+#conta.is-authenticated #signOutButton[hidden] {
+  display: none;
+}

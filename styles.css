@@ -1277,7 +1277,6 @@ h2 {
   }
 }
 
-
 /* Área de conta: centralização e botões */
 #conta .workspace-grid {
   grid-template-columns: minmax(0, 520px);

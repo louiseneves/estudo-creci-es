@@ -885,12 +885,17 @@ function choosePomodoro(pool, startIndex, excludedSubjects = []) {
 }
 
 
+
 function renderAllWeeks() {
   const container = document.getElementById("allWeeks");
   if (!container) return;
 
   const completed = new Set(
     readStorage(STORAGE_KEYS.completedDays, [])
+  );
+
+  const completedPomodoros = new Set(
+    readStorage(STORAGE_KEYS.completedPomodoros, [])
   );
 
   let dayCount = 0;
@@ -920,6 +925,12 @@ function renderAllWeeks() {
         [mainSubject, basic.subject]
       );
 
+      const pomodoroData = [
+        { id: `${key}-p1`, title: `P1 · 30 minutos — ${mainSubject}`, topic: mainTopic },
+        { id: `${key}-p2`, title: `P2 · 30 minutos — ${basic.subject}`, topic: basic.topic },
+        { id: `${key}-p3`, title: `P3 · 30 minutos — ${complementary.subject}`, topic: complementary.topic }
+      ];
+
       const pomodoros = isExamDay
         ? `
           <div class="pomodoro-item exam-day">
@@ -927,22 +938,20 @@ function renderAllWeeks() {
             <span>Priorize descanso, alimentação, documentos e deslocamento.</span>
           </div>
         `
-        : `
-          <div class="pomodoro-item">
-            <strong>P1 · 30 minutos — ${escapeHtml(mainSubject)}</strong>
-            <span>${escapeHtml(mainTopic)}</span>
-          </div>
-
-          <div class="pomodoro-item">
-            <strong>P2 · 30 minutos — ${escapeHtml(basic.subject)}</strong>
-            <span>${escapeHtml(basic.topic)}</span>
-          </div>
-
-          <div class="pomodoro-item">
-            <strong>P3 · 30 minutos — ${escapeHtml(complementary.subject)}</strong>
-            <span>${escapeHtml(complementary.topic)}</span>
-          </div>
-        `;
+        : pomodoroData.map(pomodoro => `
+          <label class="pomodoro-item pomodoro-check">
+            <input
+              type="checkbox"
+              data-pomodoro="${pomodoro.id}"
+              data-day-key="${key}"
+              ${completedPomodoros.has(pomodoro.id) ? "checked" : ""}
+            >
+            <span class="pomodoro-content">
+              <strong>${escapeHtml(pomodoro.title)}</strong>
+              <span>${escapeHtml(pomodoro.topic)}</span>
+            </span>
+          </label>
+        `).join("");
 
       return `
         <article class="day-plan">
@@ -975,23 +984,96 @@ function renderAllWeeks() {
     `;
   }).join("");
 
-  container.querySelectorAll("[data-day]").forEach(input => {
+  function saveCompletedDays(updated) {
+    writeStorage(
+      STORAGE_KEYS.completedDays,
+      [...updated]
+    );
+  }
+
+  function saveCompletedPomodoros(updated) {
+    writeStorage(
+      STORAGE_KEYS.completedPomodoros,
+      [...updated]
+    );
+  }
+
+  container.querySelectorAll("[data-pomodoro]").forEach(input => {
     input.addEventListener("change", () => {
-      const updated = new Set(
-        readStorage(STORAGE_KEYS.completedDays, [])
+      const updatedPomodoros = new Set(
+        readStorage(STORAGE_KEYS.completedPomodoros, [])
       );
 
       if (input.checked) {
-        updated.add(input.dataset.day);
+        updatedPomodoros.add(input.dataset.pomodoro);
       } else {
-        updated.delete(input.dataset.day);
+        updatedPomodoros.delete(input.dataset.pomodoro);
       }
 
-      writeStorage(
-        STORAGE_KEYS.completedDays,
-        [...updated]
+      saveCompletedPomodoros(updatedPomodoros);
+
+      const dayKey = input.dataset.dayKey;
+      const dayInputs = [
+        ...container.querySelectorAll(`[data-pomodoro][data-day-key="${dayKey}"]`)
+      ];
+
+      const allChecked =
+        dayInputs.length > 0 &&
+        dayInputs.every(item => item.checked);
+
+      const dayCheckbox = container.querySelector(`[data-day="${dayKey}"]`);
+
+      if (dayCheckbox) {
+        dayCheckbox.checked = allChecked;
+
+        const updatedDays = new Set(
+          readStorage(STORAGE_KEYS.completedDays, [])
+        );
+
+        if (allChecked) {
+          updatedDays.add(dayKey);
+        } else {
+          updatedDays.delete(dayKey);
+        }
+
+        saveCompletedDays(updatedDays);
+      }
+
+      updateProgress(dayCount);
+    });
+  });
+
+  container.querySelectorAll("[data-day]").forEach(input => {
+    input.addEventListener("change", () => {
+      const dayKey = input.dataset.day;
+      const updatedDays = new Set(
+        readStorage(STORAGE_KEYS.completedDays, [])
       );
 
+      const updatedPomodoros = new Set(
+        readStorage(STORAGE_KEYS.completedPomodoros, [])
+      );
+
+      const dayPomodoros = [
+        ...container.querySelectorAll(`[data-pomodoro][data-day-key="${dayKey}"]`)
+      ];
+
+      if (input.checked) {
+        updatedDays.add(dayKey);
+        dayPomodoros.forEach(pomodoro => {
+          pomodoro.checked = true;
+          updatedPomodoros.add(pomodoro.dataset.pomodoro);
+        });
+      } else {
+        updatedDays.delete(dayKey);
+        dayPomodoros.forEach(pomodoro => {
+          pomodoro.checked = false;
+          updatedPomodoros.delete(pomodoro.dataset.pomodoro);
+        });
+      }
+
+      saveCompletedDays(updatedDays);
+      saveCompletedPomodoros(updatedPomodoros);
       updateProgress(dayCount);
     });
   });

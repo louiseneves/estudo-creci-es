@@ -563,11 +563,10 @@ function enhanceNotebookForms() {
       options: ["Certo", "Errado"],
     });
 
-  
     addField(errorForm, {
       id: "errorAnswerKey",
       label: "Gabarito",
-      options: ["Certo", "Errado"]
+      options: ["Certo", "Errado"],
     });
 
     addField(errorForm, {
@@ -596,18 +595,17 @@ function enhanceNotebookForms() {
       type: "textarea",
       placeholder: "Resuma a questão ou o enunciado",
     });
-    
+
     addField(successForm, {
       id: "successMyAnswer",
       label: "Minha resposta",
-      options: ["Certo", "Errado"]
+      options: ["Certo", "Errado"],
     });
 
-    
     addField(successForm, {
       id: "successAnswerKey",
       label: "Gabarito",
-      options: ["Certo", "Errado"]
+      options: ["Certo", "Errado"],
     });
 
     addField(successForm, {
@@ -1006,6 +1004,17 @@ function reviewDates(entry) {
   };
 }
 
+function normalizeAnswer(value) {
+  const answer = String(value || "")
+    .trim()
+    .toUpperCase();
+
+  if (answer === "C") return "Certo";
+  if (answer === "E") return "Errado";
+
+  return value || "";
+}
+
 function renderSavedEntries(key, containerId, kind) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -1085,8 +1094,7 @@ function renderSavedEntries(key, containerId, kind) {
       </label>
     `;
 
-        
-return `
+        return `
   <article class="saved-entry">
     <div class="entry-preview">
       <div class="entry-meta">
@@ -1097,14 +1105,18 @@ return `
 
       <h4>${escapeHtml(entry.topic || entry.title || "Registro")}</h4>
 
-      ${entry.item ? `
+      ${
+        entry.item
+          ? `
         <div class="question-statement">
           <strong>Enunciado:</strong>
           <p>${escapeHtml(entry.item)}</p>
         </div>
-      ` : `
+      `
+          : `
         <p>Este registro ainda não tem um enunciado cadastrado.</p>
-      `}
+      `
+      }
 
       <div class="answer-options">
         <p><strong>Qual é a sua resposta?</strong></p>
@@ -1129,17 +1141,25 @@ return `
       >Ver mais</button>
 
       <div class="entry-details" hidden>
+        
         ${
           entry.myAnswer
-            ? `<p><strong>Minha resposta original:</strong> ${escapeHtml(entry.myAnswer)}</p>`
+            ? `<p><strong>Minha resposta original:</strong> ${escapeHtml(
+                normalizeAnswer(entry.myAnswer),
+              )}</p>`
             : ""
         }
 
+
+        
         ${
           entry.answerKey
-            ? `<p><strong>Gabarito original:</strong> ${escapeHtml(entry.answerKey)}</p>`
+            ? `<p><strong>Gabarito original:</strong> ${escapeHtml(
+                normalizeAnswer(entry.answerKey),
+              )}</p>`
             : ""
         }
+
 
         ${
           entry.reason
@@ -1179,7 +1199,6 @@ return `
     </div>
   </article>
 `;
-
       })
       .join("");
   }
@@ -1242,89 +1261,87 @@ return `
     });
   });
 
-  
-container.querySelectorAll(".saved-entry").forEach(card => {
-  const answerButtons = card.querySelectorAll(".answer-option");
-  const checkButton = card.querySelector(".check-answer");
-  const feedback = card.querySelector(".answer-feedback");
+  container.querySelectorAll(".saved-entry").forEach((card) => {
+    const answerButtons = card.querySelectorAll(".answer-option");
+    const checkButton = card.querySelector(".check-answer");
+    const feedback = card.querySelector(".answer-feedback");
 
-  if (!answerButtons.length || !checkButton || !feedback) return;
+    if (!answerButtons.length || !checkButton || !feedback) return;
 
-  let selectedAnswer = "";
+    let selectedAnswer = "";
 
-  answerButtons.forEach(button => {
-    button.addEventListener("click", () => {
-      selectedAnswer = button.dataset.answer || "";
+    answerButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedAnswer = button.dataset.answer || "";
 
-      answerButtons.forEach(option => {
-        option.classList.toggle(
-          "selected",
-          option.dataset.answer === selectedAnswer
-        );
+        answerButtons.forEach((option) => {
+          option.classList.toggle(
+            "selected",
+            option.dataset.answer === selectedAnswer,
+          );
+        });
+
+        feedback.hidden = true;
+        feedback.textContent = "";
       });
+    });
 
-      feedback.hidden = true;
-      feedback.textContent = "";
+    checkButton.addEventListener("click", () => {
+      if (!selectedAnswer) {
+        feedback.textContent = "Escolha Certo ou Errado antes de conferir.";
+        feedback.hidden = false;
+        return;
+      }
+
+      const entries = readStorage(key);
+      const entryId = card.querySelector("[data-edit]")?.dataset.edit;
+      const entry = entries.find((item) => item.id === entryId);
+
+      if (!entry || !entry.answerKey) {
+        feedback.textContent =
+          "Este registro ainda não tem gabarito cadastrado. Edite a questão e informe o gabarito.";
+        feedback.hidden = false;
+        return;
+      }
+
+      const normalize = (value) =>
+        normalizeAnswer(value).trim().toLocaleLowerCase("pt-BR");
+
+      const isCorrect =
+        normalize(selectedAnswer) === normalize(entry.answerKey);
+
+      const details = card.querySelector(".entry-details");
+      const toggleButton = card.querySelector(".toggle-entry");
+
+      if (isCorrect) {
+        feedback.textContent = "Resposta correta! Muito bem!";
+
+        if (details) {
+          details.hidden = true;
+        }
+
+        if (toggleButton) {
+          toggleButton.hidden = true;
+          toggleButton.setAttribute("aria-expanded", "false");
+          toggleButton.textContent = "Ver mais";
+        }
+      } else {
+        feedback.textContent = `Resposta incorreta. O gabarito é: ${normalizeAnswer(entry.answerKey)}.`;
+
+        if (details) {
+          details.hidden = false;
+        }
+
+        if (toggleButton) {
+          toggleButton.hidden = false;
+          toggleButton.setAttribute("aria-expanded", "true");
+          toggleButton.textContent = "Ocultar detalhes";
+        }
+      }
+
+      feedback.hidden = false;
     });
   });
-
-  checkButton.addEventListener("click", () => {
-    if (!selectedAnswer) {
-      feedback.textContent = "Escolha Certo ou Errado antes de conferir.";
-      feedback.hidden = false;
-      return;
-    }
-
-    const entries = readStorage(key);
-    const entryId = card.querySelector("[data-edit]")?.dataset.edit;
-    const entry = entries.find(item => item.id === entryId);
-
-    if (!entry || !entry.answerKey) {
-      feedback.textContent =
-        "Este registro ainda não tem gabarito cadastrado. Edite a questão e informe o gabarito.";
-      feedback.hidden = false;
-      return;
-    }
-
-    const normalize = value => value.trim().toLocaleLowerCase("pt-BR");
-    const isCorrect =
-      normalize(selectedAnswer) === normalize(entry.answerKey);
-
-    
-const details = card.querySelector(".entry-details");
-const toggleButton = card.querySelector(".toggle-entry");
-
-if (isCorrect) {
-  feedback.textContent = "Resposta correta! Muito bem!";
-
-  if (details) {
-    details.hidden = true;
-  }
-
-  if (toggleButton) {
-    toggleButton.hidden = true;
-    toggleButton.setAttribute("aria-expanded", "false");
-    toggleButton.textContent = "Ver mais";
-  }
-} else {
-  feedback.textContent = `Resposta incorreta. O gabarito é: ${entry.answerKey}.`;
-
-  if (details) {
-    details.hidden = false;
-  }
-
-  if (toggleButton) {
-    toggleButton.hidden = false;
-    toggleButton.setAttribute("aria-expanded", "true");
-    toggleButton.textContent = "Ocultar detalhes";
-  }
-}
-
-feedback.hidden = false;
-
-  });
-});
-
 
   container.querySelectorAll("[data-edit]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -1386,7 +1403,17 @@ function editEntry(key, containerId, kind, id) {
         ([field, label]) => `
       <label>
         ${label}
-        <textarea name="${field}" rows="2"></textarea>
+        ${
+          field === "myAnswer" || field === "answerKey"
+            ? `
+              <select name="${field}">
+                <option value="">Selecione...</option>
+                <option value="Certo">Certo</option>
+                <option value="Errado">Errado</option>
+              </select>
+            `
+            : `<textarea name="${field}" rows="2"></textarea>`
+        }
       </label>
     `,
       )
@@ -1395,28 +1422,37 @@ function editEntry(key, containerId, kind, id) {
     <button type="button" id="cancelEditEntry">Cancelar</button>
   `;
 
-  
-fields.forEach(([field]) => {
-  const input = form.elements.namedItem(field);
-  if (input) {
-    input.value = entry[field] || "";
-  }
-});
+  fields.forEach(([field]) => {
+    const input = form.elements.namedItem(field);
 
+    if (!input) return;
+
+    let value = entry[field] || "";
+
+    if (field === "myAnswer" || field === "answerKey") {
+      const normalizedValue = String(value).trim().toUpperCase();
+
+      if (normalizedValue === "C") {
+        value = "Certo";
+      } else if (normalizedValue === "E") {
+        value = "Errado";
+      }
+    }
+
+    input.value = value;
+  });
 
   container.prepend(form);
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    
-fields.forEach(([field]) => {
-  const input = form.elements.namedItem(field);
-  if (input) {
-    entry[field] = input.value.trim();
-  }
-});
-
+    fields.forEach(([field]) => {
+      const input = form.elements.namedItem(field);
+      if (input) {
+        entry[field] = input.value.trim();
+      }
+    });
 
     writeStorage(key, entries);
     renderSavedEntries(key, containerId, kind);

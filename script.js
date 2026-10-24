@@ -1377,7 +1377,7 @@ function editEntry(key, containerId, kind, id) {
 
   const form = document.createElement("form");
   form.id = "editEntryForm";
-  form.className = "saved-entry";
+  form.className = "saved-entry edit-entry-form";
 
   form.innerHTML = `
     <h3>Editar registro</h3>
@@ -1395,18 +1395,28 @@ function editEntry(key, containerId, kind, id) {
     <button type="button" id="cancelEditEntry">Cancelar</button>
   `;
 
-  fields.forEach(([field]) => {
-    form.elements[field].value = entry[field] || "";
-  });
+  
+fields.forEach(([field]) => {
+  const input = form.elements.namedItem(field);
+  if (input) {
+    input.value = entry[field] || "";
+  }
+});
+
 
   container.prepend(form);
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    fields.forEach(([field]) => {
-      entry[field] = form.elements[field].value.trim();
-    });
+    
+fields.forEach(([field]) => {
+  const input = form.elements.namedItem(field);
+  if (input) {
+    entry[field] = input.value.trim();
+  }
+});
+
 
     writeStorage(key, entries);
     renderSavedEntries(key, containerId, kind);

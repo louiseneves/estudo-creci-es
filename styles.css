@@ -1630,3 +1630,104 @@ h2 {
     width: 100%;
   }
 }
+
+
+/* Formulário Editar registro */
+.edit-entry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 24px;
+  background: #f5f9ff;
+  border: 1px solid #cfe0f5;
+  border-radius: 16px;
+  box-shadow: 0 5px 18px rgba(13, 47, 92, 0.07);
+}
+
+.edit-entry-form h3 {
+  margin: 0;
+  padding-bottom: 14px;
+  color: #0d2f5c;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #dce7f5;
+}
+
+.edit-entry-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #254b78;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.edit-entry-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  color: #263e59;
+  background: #fff;
+  border: 1px solid #cbd9eb;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.edit-entry-form textarea:focus {
+  outline: none;
+  border-color: #287be0;
+  box-shadow: 0 0 0 3px rgba(40, 123, 224, 0.13);
+}
+
+.edit-entry-form button {
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.edit-entry-form button[type="submit"] {
+  color: #fff;
+  background: #1766c2;
+  border-color: #1766c2;
+}
+
+.edit-entry-form button[type="submit"]:hover {
+  background: #0d3974;
+  border-color: #0d3974;
+}
+
+.edit-entry-form #cancelEditEntry {
+  color: #315579;
+  background: #fff;
+  border-color: #cbd9eb;
+}
+
+.edit-entry-form #cancelEditEntry:hover {
+  background: #eaf2fc;
+  border-color: #a9c5e8;
+}
+
+@media (max-width: 600px) {
+  .edit-entry-form {
+    gap: 13px;
+    padding: 16px;
+  }
+
+  .edit-entry-form h3 {
+    font-size: 1.05rem;
+  }
+
+  .edit-entry-form button {
+    width: 100%;
+  }
+}

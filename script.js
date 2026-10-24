@@ -1034,8 +1034,15 @@ function renderSavedEntries(key, containerId, kind) {
     .toLocaleLowerCase("pt-BR");
   const selectedFilter = filterType?.value || "all";
   const selectedDate = filterDate?.value || "";
+  const today = todayISO();
 
   const entries = allEntries.filter((entry) => {
+    const dates = reviewDates(entry);
+
+const hasPendingReview = ["one", "seven", "thirty"].some(
+  (reviewKey) =>
+    dates[reviewKey] <= today && !entry.reviews?.[reviewKey],
+);
     const subject = String(entry.subject || "").toLocaleLowerCase("pt-BR");
     const topic = String(entry.topic || entry.title || "").toLocaleLowerCase(
       "pt-BR",
@@ -1068,7 +1075,10 @@ function renderSavedEntries(key, containerId, kind) {
 
     const matchesDate = !selectedDate || entryDate === selectedDate;
 
-    return matchesSearch && matchesDate;
+const matchesPending =
+  selectedFilter !== "pending" || hasPendingReview;
+
+return matchesSearch && matchesDate && matchesPending;
   });
 
   if (!entries.length) {

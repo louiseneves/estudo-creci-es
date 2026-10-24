@@ -1083,15 +1083,23 @@ function renderSavedEntries(key, containerId, kind) {
         const dates = reviewDates(entry);
 
         const reviewBox = (label, dateKey, stateKey) => `
-      <label class="review-check">
-        <input
-          type="checkbox"
-          data-review-id="${escapeHtml(entry.id)}"
-          data-review-key="${stateKey}"
-          ${entry.reviews?.[stateKey] ? "checked" : ""}
-        >
-        <span>Rev. ${label} (${dateFromISO(dates[dateKey])})</span>
-      </label>
+      
+<label class="review-check ${
+  entry.reviews?.[stateKey]
+    ? "review-done"
+    : dates[dateKey] <= todayISO()
+      ? "review-pending"
+      : "review-future"
+}">
+  <input
+    type="checkbox"
+    data-review-id="${escapeHtml(entry.id)}"
+    data-review-key="${stateKey}"
+    ${entry.reviews?.[stateKey] ? "checked" : ""}
+  >
+  <span>Rev. ${label} (${dateFromISO(dates[dateKey])})</span>
+</label>
+
     `;
 
         return `

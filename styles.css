@@ -1182,6 +1182,27 @@ h2 {
   font-size: 0.9rem;
 }
 
+
+/* Estados das revisões */
+.review-list label.review-pending {
+  border-color: #e5a33d;
+  background: #fff7e8;
+  color: #7a4b08;
+}
+
+.review-list label.review-done {
+  border-color: #69b58a;
+  background: #eaf8ef;
+  color: #21663c;
+}
+
+.review-list label.review-future {
+  border-color: var(--line, #d9e7f8);
+  background: var(--blue-50, #f0f7ff);
+  color: var(--ink, #15365f);
+}
+  
+
 .entry-actions .delete-entry {
   color: #a12626;
 }

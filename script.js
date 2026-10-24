@@ -1444,20 +1444,44 @@ function editEntry(key, containerId, kind, id) {
 
   container.prepend(form);
 
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
+  
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
 
-    fields.forEach(([field]) => {
-      const input = form.elements.namedItem(field);
-      if (input) {
-        entry[field] = input.value.trim();
-      }
-    });
+  const requiredFields = [
+    ["subject", "Matéria"],
+    ["topic", "Assunto"],
+    ["item", "Questão resumida"],
+    ["myAnswer", "Minha resposta"],
+  ];
 
-    writeStorage(key, entries);
-    renderSavedEntries(key, containerId, kind);
-    generateAutoSummary(true);
+  if (kind === "errors") {
+    requiredFields.push(["answerKey", "Gabarito"]);
+  }
+
+  for (const [field, label] of requiredFields) {
+    const input = form.elements.namedItem(field);
+
+    if (!input || !input.value.trim()) {
+      alert(`Preencha o campo "${label}" antes de salvar.`);
+      input?.focus();
+      return;
+    }
+  }
+
+  fields.forEach(([field]) => {
+    const input = form.elements.namedItem(field);
+
+    if (input) {
+      entry[field] = input.value.trim();
+    }
   });
+
+  writeStorage(key, entries);
+  renderSavedEntries(key, containerId, kind);
+  generateAutoSummary(true);
+});
+
 
   document.getElementById("cancelEditEntry").addEventListener("click", () => {
     form.remove();

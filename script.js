@@ -1231,19 +1231,65 @@ function renderSavedEntries(key, containerId, kind) {
     });
   }
 
-  container.querySelectorAll("[data-delete]").forEach((button) => {
-    button.addEventListener("click", () => {
-      if (!confirm("Deseja excluir este registro?")) return;
+  
+container.querySelectorAll("[data-delete]").forEach((button) => {
+  button.addEventListener("click", () => {
+    if (!confirm("Deseja excluir este registro?")) return;
 
-      writeStorage(
-        key,
-        readStorage(key).filter((item) => item.id !== button.dataset.delete),
+    const entries = readStorage(key);
+    const deletedIndex = entries.findIndex(
+      (item) => item.id === button.dataset.delete
+    );
+
+    if (deletedIndex === -1) return;
+
+    const deletedEntry = entries[deletedIndex];
+
+    writeStorage(
+      key,
+      entries.filter((item) => item.id !== deletedEntry.id)
+    );
+
+    renderSavedEntries(key, containerId, kind);
+    generateAutoSummary(true);
+
+    const notice = document.createElement("div");
+    notice.className = "entry-undo-notice";
+    notice.append(
+      document.createTextNode("Registro excluído. ")
+    );
+
+    const undoButton = document.createElement("button");
+    undoButton.type = "button";
+    undoButton.className = "button button-dark";
+    undoButton.textContent = "Desfazer";
+
+    undoButton.addEventListener("click", () => {
+      const currentEntries = readStorage(key);
+
+      if (currentEntries.some(
+        (item) => item.id === deletedEntry.id
+      )) {
+        notice.remove();
+        return;
+      }
+
+      currentEntries.splice(
+        Math.min(deletedIndex, currentEntries.length),
+        0,
+        deletedEntry
       );
 
+      writeStorage(key, currentEntries);
       renderSavedEntries(key, containerId, kind);
       generateAutoSummary(true);
     });
+
+    notice.append(undoButton);
+    container.prepend(notice);
   });
+});
+
 
   container.querySelectorAll(".toggle-entry").forEach((button) => {
     button.addEventListener("click", () => {

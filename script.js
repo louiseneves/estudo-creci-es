@@ -1004,6 +1004,61 @@ function reviewDates(entry) {
   };
 }
 
+function updateReviewProgress() {
+  const today = todayISO();
+
+  const entries = [
+    ...readStorage(STORAGE_KEYS.errors),
+    ...readStorage(STORAGE_KEYS.successes),
+  ];
+
+  let pending = 0;
+  let completed = 0;
+
+  entries.forEach((entry) => {
+    const dates = reviewDates(entry);
+
+    ["one", "seven", "thirty"].forEach((reviewKey) => {
+      if (dates[reviewKey] > today) return;
+
+      if (entry.reviews?.[reviewKey]) {
+        completed++;
+      } else {
+        pending++;
+      }
+    });
+  });
+
+  const total = pending + completed;
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  const pendingElement = document.getElementById("pendingReviewsCount");
+  const completedElement = document.getElementById("completedReviewsCount");
+  const percentageElement = document.getElementById("reviewProgressPercentage");
+  const progressBar = document.getElementById("reviewProgressBar");
+  const description = document.getElementById("reviewProgressDescription");
+
+  if (pendingElement) pendingElement.textContent = pending;
+  if (completedElement) completedElement.textContent = completed;
+
+  if (percentageElement) percentageElement.textContent = `${percentage}%`;
+
+  if (progressBar) {
+    progressBar.value = percentage;
+    progressBar.setAttribute(
+      "aria-label",
+      `Progresso das revisões: ${percentage}%`,
+    );
+  }
+
+  if (description) {
+    description.textContent =
+      total > 0
+        ? `${completed} de ${total} revisões realizadas.`
+        : "Você ainda não tem revisões previstas para hoje ou vencidas.";
+  }
+}
+
 function normalizeAnswer(value) {
   const answer = String(value || "")
     .trim()
@@ -1039,10 +1094,9 @@ function renderSavedEntries(key, containerId, kind) {
   const entries = allEntries.filter((entry) => {
     const dates = reviewDates(entry);
 
-const hasPendingReview = ["one", "seven", "thirty"].some(
-  (reviewKey) =>
-    dates[reviewKey] <= today && !entry.reviews?.[reviewKey],
-);
+    const hasPendingReview = ["one", "seven", "thirty"].some(
+      (reviewKey) => dates[reviewKey] <= today && !entry.reviews?.[reviewKey],
+    );
     const subject = String(entry.subject || "").toLocaleLowerCase("pt-BR");
     const topic = String(entry.topic || entry.title || "").toLocaleLowerCase(
       "pt-BR",
@@ -1075,10 +1129,9 @@ const hasPendingReview = ["one", "seven", "thirty"].some(
 
     const matchesDate = !selectedDate || entryDate === selectedDate;
 
-const matchesPending =
-  selectedFilter !== "pending" || hasPendingReview;
+    const matchesPending = selectedFilter !== "pending" || hasPendingReview;
 
-return matchesSearch && matchesDate && matchesPending;
+    return matchesSearch && matchesDate && matchesPending;
   });
 
   if (!entries.length) {
@@ -1095,12 +1148,12 @@ return matchesSearch && matchesDate && matchesPending;
         const reviewBox = (label, dateKey, stateKey) => `
       
 <label class="review-check ${
-  entry.reviews?.[stateKey]
-    ? "review-done"
-    : dates[dateKey] <= todayISO()
-      ? "review-pending"
-      : "review-future"
-}">
+          entry.reviews?.[stateKey]
+            ? "review-done"
+            : dates[dateKey] <= todayISO()
+              ? "review-pending"
+              : "review-future"
+        }">
   <input
     type="checkbox"
     data-review-id="${escapeHtml(entry.id)}"
@@ -1249,65 +1302,59 @@ return matchesSearch && matchesDate && matchesPending;
     });
   }
 
-  
-container.querySelectorAll("[data-delete]").forEach((button) => {
-  button.addEventListener("click", () => {
-    if (!confirm("Deseja excluir este registro?")) return;
+  container.querySelectorAll("[data-delete]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!confirm("Deseja excluir este registro?")) return;
 
-    const entries = readStorage(key);
-    const deletedIndex = entries.findIndex(
-      (item) => item.id === button.dataset.delete
-    );
-
-    if (deletedIndex === -1) return;
-
-    const deletedEntry = entries[deletedIndex];
-
-    writeStorage(
-      key,
-      entries.filter((item) => item.id !== deletedEntry.id)
-    );
-
-    renderSavedEntries(key, containerId, kind);
-    generateAutoSummary(true);
-
-    const notice = document.createElement("div");
-    notice.className = "entry-undo-notice";
-    notice.append(
-      document.createTextNode("Registro excluído. ")
-    );
-
-    const undoButton = document.createElement("button");
-    undoButton.type = "button";
-    undoButton.className = "button button-dark";
-    undoButton.textContent = "Desfazer";
-
-    undoButton.addEventListener("click", () => {
-      const currentEntries = readStorage(key);
-
-      if (currentEntries.some(
-        (item) => item.id === deletedEntry.id
-      )) {
-        notice.remove();
-        return;
-      }
-
-      currentEntries.splice(
-        Math.min(deletedIndex, currentEntries.length),
-        0,
-        deletedEntry
+      const entries = readStorage(key);
+      const deletedIndex = entries.findIndex(
+        (item) => item.id === button.dataset.delete,
       );
 
-      writeStorage(key, currentEntries);
+      if (deletedIndex === -1) return;
+
+      const deletedEntry = entries[deletedIndex];
+
+      writeStorage(
+        key,
+        entries.filter((item) => item.id !== deletedEntry.id),
+      );
+
       renderSavedEntries(key, containerId, kind);
       generateAutoSummary(true);
+
+      const notice = document.createElement("div");
+      notice.className = "entry-undo-notice";
+      notice.append(document.createTextNode("Registro excluído. "));
+
+      const undoButton = document.createElement("button");
+      undoButton.type = "button";
+      undoButton.className = "button button-dark";
+      undoButton.textContent = "Desfazer";
+
+      undoButton.addEventListener("click", () => {
+        const currentEntries = readStorage(key);
+
+        if (currentEntries.some((item) => item.id === deletedEntry.id)) {
+          notice.remove();
+          return;
+        }
+
+        currentEntries.splice(
+          Math.min(deletedIndex, currentEntries.length),
+          0,
+          deletedEntry,
+        );
+
+        writeStorage(key, currentEntries);
+        renderSavedEntries(key, containerId, kind);
+        generateAutoSummary(true);
+      });
+
+      notice.append(undoButton);
+      container.prepend(notice);
     });
-
-    notice.append(undoButton);
-    container.prepend(notice);
   });
-});
-
 
   container.querySelectorAll(".toggle-entry").forEach((button) => {
     button.addEventListener("click", () => {
@@ -1425,6 +1472,14 @@ container.querySelectorAll("[data-delete]").forEach((button) => {
       };
 
       writeStorage(key, all);
+      updateReviewProgress();
+      const label = input.closest("label");
+
+if (label) {
+  label.classList.toggle("review-done", input.checked);
+  label.classList.toggle("review-pending", !input.checked);
+  label.classList.remove("review-future");
+}
     });
   });
 }
@@ -1508,44 +1563,42 @@ function editEntry(key, containerId, kind, id) {
 
   container.prepend(form);
 
-  
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
 
-  const requiredFields = [
-    ["subject", "Matéria"],
-    ["topic", "Assunto"],
-    ["item", "Questão resumida"],
-    ["myAnswer", "Minha resposta"],
-  ];
+    const requiredFields = [
+      ["subject", "Matéria"],
+      ["topic", "Assunto"],
+      ["item", "Questão resumida"],
+      ["myAnswer", "Minha resposta"],
+    ];
 
-  if (kind === "errors") {
-    requiredFields.push(["answerKey", "Gabarito"]);
-  }
-
-  for (const [field, label] of requiredFields) {
-    const input = form.elements.namedItem(field);
-
-    if (!input || !input.value.trim()) {
-      alert(`Preencha o campo "${label}" antes de salvar.`);
-      input?.focus();
-      return;
+    if (kind === "errors") {
+      requiredFields.push(["answerKey", "Gabarito"]);
     }
-  }
 
-  fields.forEach(([field]) => {
-    const input = form.elements.namedItem(field);
+    for (const [field, label] of requiredFields) {
+      const input = form.elements.namedItem(field);
 
-    if (input) {
-      entry[field] = input.value.trim();
+      if (!input || !input.value.trim()) {
+        alert(`Preencha o campo "${label}" antes de salvar.`);
+        input?.focus();
+        return;
+      }
     }
+
+    fields.forEach(([field]) => {
+      const input = form.elements.namedItem(field);
+
+      if (input) {
+        entry[field] = input.value.trim();
+      }
+    });
+
+    writeStorage(key, entries);
+    renderSavedEntries(key, containerId, kind);
+    generateAutoSummary(true);
   });
-
-  writeStorage(key, entries);
-  renderSavedEntries(key, containerId, kind);
-  generateAutoSummary(true);
-});
-
 
   document.getElementById("cancelEditEntry").addEventListener("click", () => {
     form.remove();
@@ -1588,6 +1641,7 @@ function setupEntryForm(formId, key, containerId, kind, getEntry) {
   });
 
   renderSavedEntries(key, containerId, kind);
+  updateReviewProgress();
 }
 
 const pomodoroBasics = [
@@ -2143,6 +2197,7 @@ onAuthStateChanged(auth, async (user) => {
       renderSavedEntries(STORAGE_KEYS.summaries, "summaryEntries", "summaries");
       renderAllWeeks();
       ensureSummaryEditor();
+      updateReviewProgress();
 
       showAuthMessage(`Conta conectada: ${user.email}`);
     } catch (error) {

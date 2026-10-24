@@ -677,6 +677,126 @@ h2 {
   color: var(--muted);
   font-size: 0.78rem;
 }
+
+
+/* Painel de progresso das revisões */
+#progresso .workspace-card {
+  border-color: var(--line);
+}
+
+#progresso .workspace-title h2 {
+  margin: 0 0 4px;
+  color: var(--text);
+  font-size: 1.15rem;
+}
+
+.review-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.review-progress-card {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.review-progress-card h3 {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.review-progress-card p {
+  margin: 0;
+  color: var(--primary);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.review-progress-card:first-child {
+  border-left: 4px solid #e0a126;
+}
+
+.review-progress-card:last-child {
+  border-left: 4px solid #238636;
+}
+
+.review-progress-overview {
+  display: grid;
+  gap: 12px;
+}
+
+.review-progress-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+#reviewProgressPercentage {
+  color: var(--primary);
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+#reviewProgressBar {
+  display: block;
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: #e6edf5;
+  accent-color: #238636;
+}
+
+#reviewProgressBar::-webkit-progress-bar {
+  border-radius: 999px;
+  background: #e6edf5;
+}
+
+#reviewProgressBar::-webkit-progress-value {
+  border-radius: 999px;
+  background: #238636;
+  transition: width 0.3s ease;
+}
+
+#reviewProgressBar::-moz-progress-bar {
+  border-radius: 999px;
+  background: #238636;
+}
+
+#reviewProgressDescription {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .review-progress-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  #progresso .workspace-card {
+    padding: 18px;
+  }
+
+  .review-progress-card {
+    padding: 16px;
+  }
+}
+
 .entry-form {
   display: flex;
   flex-direction: column;
@@ -1201,7 +1321,7 @@ h2 {
   background: var(--blue-50, #f0f7ff);
   color: var(--ink, #15365f);
 }
-  
+
 
 .entry-actions .delete-entry {
   color: #a12626;
@@ -1751,4 +1871,84 @@ h2 {
   .edit-entry-form button {
     width: 100%;
   }
+}
+
+/* Ajustes de alinhamento e tamanho do painel de revisões */
+#progresso.workspace-section {
+  width: 100%;
+  max-width: none;
+  margin-inline: auto;
+}
+
+#progresso .workspace-card {
+  width: 100%;
+  max-width: none;
+  margin-inline: auto;
+}
+
+#progresso .workspace-title {
+  justify-content: center;
+  text-align: center;
+}
+
+#progresso .workspace-title > div:last-child {
+  text-align: center;
+}
+
+#progresso .review-progress-grid {
+  max-width: 520px;
+  margin: 0 auto 22px;
+}
+
+#progresso .review-progress-card {
+  padding: 15px;
+  text-align: center;
+}
+
+#progresso .review-progress-card h3 {
+  margin-bottom: 8px;
+}
+
+#progresso .review-progress-card p {
+  font-size: 1.65rem;
+}
+
+#progresso .review-progress-overview {
+  max-width: 520px;
+  margin-inline: auto;
+  width: 100%;
+}
+
+#progresso .review-progress-label {
+  justify-content: center;
+  gap: 10px;
+}
+
+#progresso #reviewProgressBar {
+  max-width: 100%;
+  height: 9px;
+}
+
+#progresso #reviewProgressDescription {
+  text-align: center;
+}
+
+/* Ajuste do painel de revisões para telas grandes */
+@media (min-width: 1024px) {
+  #progresso.workspace-section.section-shell {
+    max-width: 1240px;
+    width: 100%;
+    margin-inline: auto;
+    padding-inline: 32px;
+    box-sizing: border-box;
+  }
+
+  #progresso .workspace-card {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+}
+#progresso {
+  margin-bottom: 32px;
 }

@@ -18,12 +18,15 @@
       <span class="brand-icon" aria-hidden="true">▰</span><span>Meu <strong>Estudo</strong></span>
     </a>
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">☰</button>
-    <nav class="main-nav" id="mainNav" aria-label="Navegação principal">
-      <a class="nav-link active" href="#inicio">Início</a>
-      <a class="nav-link" href="#plano">Plano de Estudo</a>
-      <a class="nav-link" href="#cadernos">Cadernos</a>
-      <a class="nav-link" href="#resumo">Resumo</a>
-    </nav>
+    
+<nav class="main-nav" id="mainNav" aria-label="Navegação principal">
+  <a class="nav-link active" href="#inicio">Início</a>
+  <a class="nav-link" href="#plano">Plano de Estudo</a>
+  <a class="nav-link" href="#cadernos">Cadernos</a>
+  <a class="nav-link" href="#resumo">Resumo</a>
+  <a class="nav-link" href="#progresso">Progresso das revisões</a>
+</nav>
+
     <span class="exam-pill"><span aria-hidden="true">▦</span> CRECI-ES <i>|</i> Analista de TI</span>
   </header>
 
@@ -267,6 +270,44 @@
         </article>
       </div>
     </section>
+
+    
+    <section id="progresso" class="workspace-section section-shell">
+      <article class="workspace-card">
+        <div class="workspace-title">
+          <div class="feature-icon icon-summary">✓</div>
+          <div>
+            <h2>Progresso das revisões</h2>
+            <p>Acompanhe suas revisões de 1, 7 e 30 dias.</p>
+          </div>
+        </div>
+
+        <div class="review-progress-grid">
+          <div class="review-progress-card">
+            <h3>Revisões pendentes</h3>
+            <p id="pendingReviewsCount">0</p>
+          </div>
+
+          <div class="review-progress-card">
+            <h3>Revisões concluídas</h3>
+            <p id="completedReviewsCount">0</p>
+          </div>
+        </div>
+
+        <div class="review-progress-overview">
+          <div class="review-progress-label">
+            <span>Progresso geral</span>
+            <strong id="reviewProgressPercentage">0%</strong>
+          </div>
+
+          <progress id="reviewProgressBar" value="0" max="100">0%</progress>
+          <p id="reviewProgressDescription">
+            As estatísticas das suas revisões aparecerão aqui.
+          </p>
+        </div>
+      </article>
+    </section>
+
 
     <section class="full-plan-section" id="cronogramaCompleto">
       <div class="section-shell">

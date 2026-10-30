@@ -628,18 +628,72 @@ function ensureSummaryEditor() {
   panel.className = "saved-entry auto-summary-panel";
 
   panel.innerHTML = `
-    <h3>Resumo automático dos cadernos</h3>
-    <p>O resumo reúne as explicações registradas nos cadernos de erros e acertos. Você pode editar o texto e salvar sua versão.</p>
-    <div id="autoSummaryCards" class="auto-summary-cards"></div>
+    
+<h3>Resumo automático dos cadernos</h3>
 
-<textarea id="autoSummaryText" rows="12"
+<p>
+  O resumo reúne as regras corretas registradas no caderno de erros.
+  Você pode editar o texto e salvar sua versão.
+</p>
+
+<div class="auto-summary-filters">
+
+  <div class="filter-group">
+    <label for="autoSummarySubjectFilter">Disciplina</label>
+    <select id="autoSummarySubjectFilter">
+      <option value="all">Todas as disciplinas</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label for="autoSummaryTopicFilter">Assunto</label>
+    <select id="autoSummaryTopicFilter">
+      <option value="all">Todos os assuntos</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label for="autoSummaryReviewDate">Data da revisão</label>
+    <input type="date" id="autoSummaryReviewDate">
+  </div>
+
+  <div class="filter-group">
+    <label for="autoSummaryReviewStatus">Situação da revisão</label>
+    <select id="autoSummaryReviewStatus">
+      <option value="all">Todas</option>
+      <option value="pending">Pendentes</option>
+      <option value="completed">Realizadas</option>
+      <option value="future">Futuras</option>
+    </select>
+  </div>
+
+  <button type="button" id="clearAutoSummaryFilters">
+    Limpar filtros
+  </button>
+
+</div>
+
+<div id="autoSummaryCards" class="auto-summary-cards"></div>
+
+<textarea
+  id="autoSummaryText"
+  rows="12"
   aria-label="Resumo automático editável"
-  placeholder="O resumo editável será preparado a partir dos seus registros..."></textarea>
-    <div class="summary-actions">
-      <button type="button" id="refreshAutoSummary">Atualizar com os cadernos</button>
-      <button type="button" id="saveAutoSummary">Salvar minhas edições</button>
-    </div>
-    <p id="autoSummaryStatus" class="entry-meta" aria-live="polite"></p>
+  placeholder="O resumo editável será preparado a partir dos seus registros..."
+></textarea>
+
+<div class="summary-actions">
+  <button type="button" id="refreshAutoSummary">
+    Atualizar com os cadernos
+  </button>
+
+  <button type="button" id="saveAutoSummary">
+    Salvar minhas edições
+  </button>
+</div>
+
+<p id="autoSummaryStatus" class="entry-meta" aria-live="polite"></p>
+
   `;
 
   summaryForm.parentNode.insertBefore(panel, summaryForm);

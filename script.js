@@ -630,9 +630,11 @@ function ensureSummaryEditor() {
   panel.innerHTML = `
     <h3>Resumo automático dos cadernos</h3>
     <p>O resumo reúne as explicações registradas nos cadernos de erros e acertos. Você pode editar o texto e salvar sua versão.</p>
-    <textarea id="autoSummaryText" rows="12"
-      aria-label="Resumo automático editável"
-      placeholder="Seu resumo será montado a partir dos registros..."></textarea>
+    <div id="autoSummaryCards" class="auto-summary-cards"></div>
+
+<textarea id="autoSummaryText" rows="12"
+  aria-label="Resumo automático editável"
+  placeholder="O resumo editável será preparado a partir dos seus registros..."></textarea>
     <div class="summary-actions">
       <button type="button" id="refreshAutoSummary">Atualizar com os cadernos</button>
       <button type="button" id="saveAutoSummary">Salvar minhas edições</button>
@@ -712,20 +714,172 @@ function ensureSummaryEditor() {
   }
 }
 
+function shortenAnalysisLocally(analysis) {
+  if (typeof analysis !== "string") return "";
+
+  let text = analysis.trim();
+  if (!text) return "";
+
+  // Quando a análise identifica um erro e depois apresenta a correção,
+  // prioriza o trecho posterior à expressão de correção.
+
+  const correctionPatterns = [
+    /\bno entanto,\s*essa afirmação está incorreta[.:]?\s*/i,
+    /\bno entanto,\s*essa afirmativa está incorreta[.:]?\s*/i,
+    /\bporém,\s*essa afirmação está incorreta[.:]?\s*/i,
+    /\bcontudo,\s*essa afirmação está incorreta[.:]?\s*/i,
+    /\bo que torna a afirmativa errada[.:]?\s*/i,
+    /\bo que torna a afirmação errada[.:]?\s*/i,
+  ];
+
+  for (const pattern of correctionPatterns) {
+    const match = pattern.exec(text);
+
+    if (match) {
+      const correctedPart = text.slice(match.index + match[0].length).trim();
+
+      if (correctedPart) {
+        text = correctedPart;
+        break;
+      }
+    }
+  }
+
+  text = text.replace(
+    /\bEsta afirmação está correta,\s*(pois|porque)\s+/i,
+    "A afirmação está correta: ",
+  );
+
+  text = text.replace(
+    /\bEssa afirmação está correta,\s*(pois|porque)\s+/i,
+    "A afirmação está correta: ",
+  );
+
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function synthesizeRuleLocally(rule) {
+  if (typeof rule !== "string") return "";
+
+  let text = rule.trim();
+  if (!text) return "";
+
+  // Normaliza as quebras de linha sem eliminar a separação entre seções.
+  text = text
+    .replace(/\r\n?/g, "\n")
+    .replace(/[ \t]+/g, " ")
+    .trim();
+
+  const sectionPattern = /(?:^|\n|\s)(Análise\s+do\s+Item|Fundamentação)\s*:/gi;
+
+  const matches = [...text.matchAll(sectionPattern)];
+
+  // Sem os títulos conhecidos, aplica apenas limpeza conservadora.
+  if (matches.length === 0) {
+    return text.replace(/\n+/g, "\n").trim();
+  }
+
+  const sections = [];
+  const firstMatch = matches[0];
+
+  // Preserva qualquer conteúdo que apareça antes do primeiro título.
+  const before = text.slice(0, firstMatch.index).trim();
+  if (before) sections.push(before);
+
+  const parsedSections = {
+    analysis: "",
+    foundation: "",
+  };
+
+  matches.forEach((match, index) => {
+    const contentStart = match.index + match[0].length;
+    const contentEnd =
+      index + 1 < matches.length ? matches[index + 1].index : text.length;
+
+    const heading = match[1].toLocaleLowerCase("pt-BR").startsWith("análise")
+      ? "analysis"
+      : "foundation";
+
+    const content = text.slice(contentStart, contentEnd).trim();
+
+    if (!content) return;
+
+    if (heading === "analysis") {
+      parsedSections.analysis +=
+        (parsedSections.analysis ? "\n" : "") + content;
+    } else {
+      parsedSections.foundation +=
+        (parsedSections.foundation ? "\n" : "") + content;
+    }
+  });
+
+  if (parsedSections.analysis) {
+    const sentences =
+      parsedSections.analysis.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
+
+    const seen = new Set();
+    const uniqueSentences = [];
+
+    sentences.forEach((sentence) => {
+      const cleaned = sentence
+        .trim()
+        .replace(
+          /^(?:(?:é importante destacar que|vale destacar que|deve-se observar que|cabe ressaltar que|é necessário lembrar que|é importante lembrar que)[,:]?\s*)+/i,
+          "",
+        )
+        .trim();
+
+      if (!cleaned) return;
+
+      const normalized = cleaned
+        .replace(/[.!?]+$/, "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLocaleLowerCase("pt-BR");
+
+      if (seen.has(normalized)) return;
+
+      seen.add(normalized);
+      uniqueSentences.push(cleaned);
+    });
+
+    const conclusion = shortenAnalysisLocally(
+      uniqueSentences
+        .join(" ")
+        .replace(
+          /^(?:(?:é importante destacar que|vale destacar que|deve-se observar que|cabe ressaltar que|é necessário lembrar que|é importante lembrar que)[,:]?\s*)+/i,
+          "",
+        )
+        .replace(/\s+/g, " ")
+        .trim(),
+    );
+
+    if (conclusion) {
+      sections.push(`Conclusão:\n${conclusion}`);
+    }
+  }
+
+  if (parsedSections.foundation) {
+    sections.push(`Fundamentação:\n${parsedSections.foundation}`);
+  }
+
+  return sections.join("\n\n").trim();
+}
+
 function generateAutoSummary(overwrite = true) {
   const field = document.getElementById("autoSummaryText");
-  if (!field) return;
+  const cardsContainer = document.getElementById("autoSummaryCards");
+
+  if (!field || !cardsContainer) return;
   if (!overwrite && field.value.trim()) return;
 
   const records = readStorage(STORAGE_KEYS.errors);
-
   const grouped = new Map();
 
   records.forEach((record) => {
     const block = record.block || "Bloco não informado";
     const subject = record.subject || "Matéria não informada";
     const topic = record.topic || record.title || "Assunto não informado";
-
     const key = `${block}|||${subject}|||${topic}`;
 
     if (!grouped.has(key)) {
@@ -737,7 +891,8 @@ function generateAutoSummary(overwrite = true) {
       });
     }
 
-    const rule = String(record.rule || "").trim();
+    const originalRule = String(record.rule || "").trim();
+    const rule = synthesizeRuleLocally(originalRule);
 
     if (rule && !grouped.get(key).rules.includes(rule)) {
       grouped.get(key).rules.push(rule);
@@ -746,7 +901,9 @@ function generateAutoSummary(overwrite = true) {
 
   if (!records.length) {
     field.value =
-      "Ainda não há questões no caderno de erros. Quando você registrar questões erradas e preencher a regra correta, o resumo será organizado por bloco, disciplina e assunto.";
+      "Ainda não há questões no caderno de erros. Registre questões e preencha a regra correta para montar seu resumo.";
+    cardsContainer.innerHTML =
+      '<p class="entry-meta">Seus cartões aparecerão aqui quando houver questões no caderno de erros.</p>';
   } else {
     const blocks = [
       "Básicos",
@@ -766,34 +923,181 @@ function generateAutoSummary(overwrite = true) {
       );
     });
 
+    cardsContainer.replaceChildren();
+
+    const sections = [];
     let currentBlock = "";
     let currentSubject = "";
 
-    const sections = [];
+    function refreshTextFromCards() {
+      const lines = [];
+
+      cardsContainer.querySelectorAll(".auto-summary-card").forEach((card) => {
+        const block = card.dataset.block;
+        const subject = card.dataset.subject;
+        const topic = card.dataset.topic;
+
+        lines.push(`${block} — ${subject} — ${topic}`);
+
+        const editors = card.querySelectorAll(".auto-summary-rule-editor");
+
+        if (editors.length) {
+          editors.forEach((editor) => {
+            const value = editor.value.trim();
+            if (value) lines.push(`- Regra correta: ${value}`);
+          });
+        } else {
+          card.querySelectorAll(".auto-summary-card-rules p").forEach((p) => {
+            const value = p.textContent.trim();
+            if (value) lines.push(`- ${value}`);
+          });
+        }
+
+        lines.push("");
+      });
+
+      field.value = lines.join("\n").trim();
+      localStorage.setItem("meuEstudoCreci.autoSummary", field.value);
+    }
 
     ordered.forEach((group) => {
       if (group.block !== currentBlock) {
-        sections.push(`\n${group.block.toUpperCase()}\n`);
+        const heading = document.createElement("h3");
+        heading.className = "auto-summary-block-title";
+        heading.textContent = group.block;
+        cardsContainer.appendChild(heading);
+
         currentBlock = group.block;
         currentSubject = "";
       }
 
       if (group.subject !== currentSubject) {
-        sections.push(`\n${group.subject}\n`);
+        const heading = document.createElement("h4");
+        heading.className = "auto-summary-subject-title";
+        heading.textContent = group.subject;
+        cardsContainer.appendChild(heading);
+
         currentSubject = group.subject;
       }
 
-      sections.push(`\n${group.topic}`);
+      const card = document.createElement("article");
+      card.className = "auto-summary-card";
+      card.dataset.block = group.block;
+      card.dataset.subject = group.subject;
+      card.dataset.topic = group.topic;
+
+      const title = document.createElement("h5");
+      title.textContent = group.topic;
+      card.appendChild(title);
+
+      const ruleArea = document.createElement("div");
+      ruleArea.className = "auto-summary-card-rules";
+
+      if (group.rules.length) {
+        group.rules.forEach((rule) => {
+          const ruleItem = document.createElement("div");
+          ruleItem.className = "auto-summary-rule-item";
+
+          const display = document.createElement("p");
+          display.textContent = rule;
+
+          const editor = document.createElement("textarea");
+          editor.className = "auto-summary-rule-editor";
+          editor.value = rule;
+          editor.hidden = true;
+          editor.rows = 4;
+          editor.setAttribute("aria-label", `Editar regra de ${group.topic}`);
+
+          const actions = document.createElement("div");
+          actions.className = "summary-actions";
+          actions.hidden = true;
+
+          const saveButton = document.createElement("button");
+          saveButton.type = "button";
+          saveButton.textContent = "Salvar regra";
+
+          const cancelButton = document.createElement("button");
+          cancelButton.type = "button";
+          cancelButton.textContent = "Cancelar";
+
+          const editButton = document.createElement("button");
+          editButton.type = "button";
+          editButton.textContent = "Editar regra";
+
+          editButton.addEventListener("click", () => {
+            editor.value = display.textContent;
+            display.hidden = true;
+            editor.hidden = false;
+            actions.hidden = false;
+            editButton.hidden = true;
+            editor.focus();
+          });
+
+          cancelButton.addEventListener("click", () => {
+            editor.value = display.textContent;
+            editor.hidden = true;
+            actions.hidden = true;
+            display.hidden = false;
+            editButton.hidden = false;
+          });
+
+          saveButton.addEventListener("click", () => {
+            const originalEditedRule = editor.value.trim();
+
+            if (!originalEditedRule) {
+              editor.focus();
+              return;
+            }
+
+            const newRule = synthesizeRuleLocally(originalEditedRule);
+
+            if (!newRule) {
+              editor.focus();
+              return;
+            }
+
+            display.textContent = newRule;
+            editor.value = newRule;
+            editor.hidden = true;
+            actions.hidden = true;
+            display.hidden = false;
+            editButton.hidden = false;
+
+            refreshTextFromCards();
+
+            const status = document.getElementById("autoSummaryStatus");
+            if (status) {
+              status.textContent =
+                "Regra atualizada no resumo. Clique em “Salvar minhas edições” para sincronizar com a nuvem.";
+            }
+          });
+
+          actions.append(saveButton, cancelButton);
+          ruleItem.append(display, editor, editButton, actions);
+          ruleArea.appendChild(ruleItem);
+        });
+      } else {
+        const paragraph = document.createElement("p");
+        paragraph.className = "entry-meta";
+        paragraph.textContent =
+          "Regra correta ainda não preenchida no caderno de erros.";
+        ruleArea.appendChild(paragraph);
+      }
+
+      card.appendChild(ruleArea);
+      cardsContainer.appendChild(card);
+
+      sections.push(`${group.block} — ${group.subject} — ${group.topic}`);
 
       if (group.rules.length) {
         group.rules.forEach((rule) => {
           sections.push(`- Regra correta: ${rule}`);
         });
       } else {
-        sections.push(
-          "- Regra correta ainda não preenchida no caderno de erros.",
-        );
+        sections.push("- Regra correta ainda não preenchida.");
       }
+
+      sections.push("");
     });
 
     field.value = sections.join("\n").trim();
@@ -803,10 +1107,9 @@ function generateAutoSummary(overwrite = true) {
     localStorage.setItem("meuEstudoCreci.autoSummary", field.value);
 
     const status = document.getElementById("autoSummaryStatus");
-
     if (status) {
       status.textContent =
-        "Resumo organizado por disciplina e assunto. Clique em “Salvar minhas edições” para sincronizar com a nuvem.";
+        "Cartões organizados por bloco, disciplina e assunto. Você pode editar cada regra individualmente.";
     }
   }
 }
@@ -1475,11 +1778,11 @@ function renderSavedEntries(key, containerId, kind) {
       updateReviewProgress();
       const label = input.closest("label");
 
-if (label) {
-  label.classList.toggle("review-done", input.checked);
-  label.classList.toggle("review-pending", !input.checked);
-  label.classList.remove("review-future");
-}
+      if (label) {
+        label.classList.toggle("review-done", input.checked);
+        label.classList.toggle("review-pending", !input.checked);
+        label.classList.remove("review-future");
+      }
     });
   });
 }
